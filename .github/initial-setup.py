@@ -2,6 +2,7 @@ import os
 import shutil
 import re
 import sys
+import json
 
 
 def replace_in_file(filename, mapping):
@@ -16,6 +17,7 @@ def replace_in_file(filename, mapping):
     outfile.close()
     shutil.copyfile(filename+'.tmp', filename)
     os.remove(filename+'.tmp')
+    os.system(f'git add {filename}')
 
 def list_files_to_edit(root, extensions,
         exclude_directories=[],
@@ -51,8 +53,9 @@ def rename_files_and_directories(root, extensions,
                 new_name = new_name.replace(k, v)
             if new_name != subdirname:
                 print("==> Renaming "+os.path.join(dirname, subdirname)+" into "+os.path.join(dirname, new_name))
-                shutil.move(os.path.join(dirname, subdirname),
-                            os.path.join(dirname, new_name))
+                os.system(f'git mv {os.path.join(dirname, subdirname)} {os.path.join(dirname, new_name)}')
+                #shutil.move(os.path.join(dirname, subdirname),
+                #            os.path.join(dirname, new_name))
                 dirnames.remove(subdirname)
                 dirnames.append(new_name)
         # rename files
@@ -66,18 +69,20 @@ def rename_files_and_directories(root, extensions,
                         new_name = new_name.replace(k, v)
                     if new_name != filename:
                         print("==> Renaming "+os.path.join(dirname, filename)+" into "+os.path.join(dirname, new_name))
-                        os.rename(os.path.join(dirname, filename),
-                                  os.path.join(dirname, new_name))
+                        os.system(f'git mv {os.path.join(dirname, filename)} {os.path.join(dirname, new_name)}')
+                        #os.rename(os.path.join(dirname, filename),
+                        #          os.path.join(dirname, new_name))
                     break # don't try the next extension for this file
 
 
 if __name__ == '__main__':
-    service_name = input('Enter the name of your service: ')
+    with open('initial-setup.json') as f:
+        info = json.loads(f.read())
+    service_name = info['service_name']
     if(not re.match('[a-zA-Z_][a-zA-Z\d_]*', service_name)):
         print("Error: service name must start with a letter and consist of letters, digits, or underscores")
         sys.exit(-1)
-    service_name = service_name.rstrip()
-    resource_name = input('Enter the name of the resources (e.g., database): ')
+    resource_name = info['resource_name']
     if(not re.match('[a-zA-Z_][a-zA-Z\d_]*', resource_name)):
         print("Error: resource name must start with a letter and consist of letters, digits, or underscores")
         sys.exit(-1)
@@ -91,10 +96,17 @@ if __name__ == '__main__':
     }
     files_to_edit = list_files_to_edit('.',
         extensions=['.cpp', '.h', '.hpp', '.txt', '.in'],
-        exclude_directories=['.git','build', '.spack-env'])
+        exclude_directories=['.git', '.github', 'build', '.spack-env', 'munit'],
+        exclude_files=['uthash.h'])
     for f in files_to_edit:
         replace_in_file(f, mapping)
     rename_files_and_directories('.',
-        extensions=['.cpp', '.hpp', '.h', '.txt', '.in'],
+        extensions=['.cpp', '.h', '.hpp', '.txt', '.in'],
         mapping=mapping,
-        exclude_directories=['.git','build', '.spack-env'])
+        exclude_directories=['.git', '.github', 'build', '.spack-env', 'munit'],
+        exclude_files=['uthash.h'])
+    os.system('git rm .github/initial-setup.py')
+    os.system('git rm initial-setup.json')
+    os.system('git rm COPYRIGHT')
+    with open('README.md', 'w+') as f:
+        f.write(f'Your project "{service_name}" has been setup!\n Enjoy programming with Mochi!')
