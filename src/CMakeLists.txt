@@ -32,7 +32,8 @@ target_link_libraries (alpha-server
     thallium
     PkgConfig::ABTIO
     PkgConfig::UUID
-    nlohmann_json::nlohmann_json)
+    nlohmann_json::nlohmann_json
+    spdlog::spdlog)
 target_include_directories (alpha-server PUBLIC $<INSTALL_INTERFACE:include>)
 target_include_directories (alpha-server BEFORE PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>)
@@ -44,7 +45,7 @@ set_target_properties (alpha-server
 
 # client library
 add_library (alpha-client ${client-src-files})
-target_link_libraries (alpha-client thallium PkgConfig::UUID)
+target_link_libraries (alpha-client thallium PkgConfig::UUID spdlog::spdlog)
 target_include_directories (alpha-client PUBLIC $<INSTALL_INTERFACE:include>)
 target_include_directories (alpha-client BEFORE PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>)
@@ -56,7 +57,7 @@ set_target_properties (alpha-client
 
 # admin library
 add_library (alpha-admin ${admin-src-files})
-target_link_libraries (alpha-admin thallium PkgConfig::UUID nlohmann_json::nlohmann_json)
+target_link_libraries (alpha-admin thallium PkgConfig::UUID nlohmann_json::nlohmann_json spdlog::spdlog)
 target_include_directories (alpha-admin PUBLIC $<INSTALL_INTERFACE:include>)
 target_include_directories (alpha-admin BEFORE PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>)
@@ -69,7 +70,7 @@ set_target_properties (alpha-admin
 if (${ENABLE_BEDROCK})
 # bedrock module library
 add_library (alpha-bedrock-module ${module-src-files})
-target_link_libraries (alpha-bedrock-module alpha-server alpha-admin alpha-client)
+target_link_libraries (alpha-bedrock-module alpha-server alpha-admin alpha-client bedrock-server)
 target_include_directories (alpha-bedrock-module PUBLIC $<INSTALL_INTERFACE:include>)
 target_include_directories (alpha-bedrock-module BEFORE PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>)
