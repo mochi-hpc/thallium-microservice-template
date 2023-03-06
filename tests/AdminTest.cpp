@@ -1,50 +1,38 @@
 /*
  * (C) 2020 The University of Chicago
- * 
+ *
  * See COPYRIGHT in top-level directory.
  */
 #include <alpha/Admin.hpp>
-#include <cppunit/extensions/HelperMacros.h>
+#include <alpha/Provider.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_all.hpp>
 
-extern thallium::engine engine;
-extern std::string resource_type;
+static const std::string resource_type = "dummy";
+static constexpr const char* resource_config = "{ \"path\" : \"mydb\" }";
 
-class AdminTest : public CppUnit::TestFixture
-{
-    CPPUNIT_TEST_SUITE( AdminTest );
-    CPPUNIT_TEST( testAdminCreateResource );
-    CPPUNIT_TEST_SUITE_END();
+TEST_CASE("Admin tests", "[admin]") {
 
-    static constexpr const char* resource_config = "{ \"path\" : \"mydb\" }";
+    auto engine = thallium::engine("na+sm", THALLIUM_SERVER_MODE);
+    // Initialize the Sonata provider
+    alpha::Provider provider(engine);
 
-    public:
-
-    void setUp() {}
-    void tearDown() {}
-
-    void testAdminCreateResource() {
+    SECTION("Create an admin") {
         alpha::Admin admin(engine);
         std::string addr = engine.self();
 
-        alpha::UUID resource_id;
-        // Create a valid Resource
-        CPPUNIT_ASSERT_NO_THROW_MESSAGE("admin.createResource should return a valid Resource",
-                resource_id = admin.createResource(addr, 0, resource_type, resource_config));
+        SECTION("Create and destroy resources") {
+            alpha::UUID resource_id = admin.createResource(addr, 0, resource_type, resource_config);
 
-        // Create a Resource with a wrong backend type
-        alpha::UUID bad_id;
-        CPPUNIT_ASSERT_THROW_MESSAGE("admin.createResource should throw an exception (wrong backend)",
-                bad_id = admin.createResource(addr, 0, "blabla", resource_config),
-                alpha::Exception);
+            REQUIRE_THROWS_AS(admin.createResource(addr, 0, "blabla", resource_config),
+                              alpha::Exception);
 
-        // Destroy the Resource
-        CPPUNIT_ASSERT_NO_THROW_MESSAGE("admin.destroyResource should not throw on valid Resource",
-            admin.destroyResource(addr, 0, resource_id));
+            admin.destroyResource(addr, 0, resource_id);
 
-        // Destroy an invalid Resource
-        CPPUNIT_ASSERT_THROW_MESSAGE("admin.destroyResource should throw on invalid Resource",
-            admin.destroyResource(addr, 0, bad_id),
-            alpha::Exception);
+            alpha::UUID bad_id;
+            REQUIRE_THROWS_AS(admin.destroyResource(addr, 0, bad_id), alpha::Exception);
+        }
     }
-};
-CPPUNIT_TEST_SUITE_REGISTRATION( AdminTest );
+    // Finalize the engine
+    engine.finalize();
+}

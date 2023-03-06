@@ -1,6 +1,6 @@
 /*
  * (C) 2020 The University of Chicago
- * 
+ *
  * See COPYRIGHT in top-level directory.
  */
 #ifndef __ALPHA_ADMIN_HPP
@@ -50,7 +50,7 @@ class Admin {
      * @param engine Thallium engine.
      */
     Admin(const tl::engine& engine);
-    
+
     /**
      * @brief Copy constructor.
      */
@@ -80,7 +80,7 @@ class Admin {
      * @brief Check if the Admin instance is valid.
      */
     operator bool() const;
-    
+
     /**
      * @brief Creates a resource on the target provider.
      * The config string must be a JSON object acceptable
@@ -96,7 +96,7 @@ class Admin {
                         const std::string& type,
                         const std::string& config,
                         const std::string& token="") const;
-    
+
     /**
      * @brief Creates a resource on the target provider.
      * The config string must be a JSON object acceptable

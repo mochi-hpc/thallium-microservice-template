@@ -1,4 +1,4 @@
-# (C) 2020 The University of Chicago 
+# (C) 2020 The University of Chicago
 # See COPYRIGHT in top-level directory.
 cmake_minimum_required (VERSION 3.8)
 project (alpha C CXX)
@@ -41,10 +41,10 @@ find_package (nlohmann_json REQUIRED)
 # search for TCLAP
 find_package (TCLAP REQUIRED)
 # search for spdlog
-find_package(spdlog REQUIRED)
+find_package (spdlog REQUIRED)
 # search of bedrock if needed
 if (${ENABLE_BEDROCK})
-    find_package(bedrock REQUIRED)
+    find_package (bedrock REQUIRED)
 endif ()
 
 # library version set here (e.g. for shared libs).
@@ -55,10 +55,20 @@ set (ALPHA_VERSION
      "${ALPHA_VERSION_MAJOR}.${ALPHA_VERSION_MINOR}.${ALPHA_VERSION_PATCH}")
 
 add_subdirectory (src)
-if(${ENABLE_TESTS})
-  pkg_check_modules (cppunit REQUIRED IMPORTED_TARGET cppunit)
-  add_subdirectory (tests)
-endif(${ENABLE_TESTS})
-if(${ENABLE_EXAMPLES})
-  add_subdirectory (examples)
-endif(${ENABLE_EXAMPLES})
+if (${ENABLE_TESTS})
+    enable_testing ()
+    find_package (Catch2 QUIET)
+    if (NOT Catch2_FOUND)
+        include (FetchContent)
+        FetchContent_Declare (
+            Catch2
+            GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+            GIT_TAG        v3.0.1
+        )
+        FetchContent_MakeAvailable (Catch2)
+    endif ()
+    add_subdirectory (tests)
+endif (${ENABLE_TESTS})
+if (${ENABLE_EXAMPLES})
+    add_subdirectory (examples)
+endif (${ENABLE_EXAMPLES})

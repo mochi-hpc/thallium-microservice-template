@@ -1,51 +1,38 @@
 /*
  * (C) 2020 The University of Chicago
- * 
+ *
  * See COPYRIGHT in top-level directory.
  */
-#include <cppunit/extensions/HelperMacros.h>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_all.hpp>
 #include <alpha/Client.hpp>
+#include <alpha/Provider.hpp>
+#include <alpha/ResourceHandle.hpp>
 #include <alpha/Admin.hpp>
 
-extern thallium::engine engine;
-extern std::string resource_type;
+static constexpr const char* resource_config = "{ \"path\" : \"mydb\" }";
+static const std::string resource_type = "dummy";
 
-class ClientTest : public CppUnit::TestFixture
-{
-    CPPUNIT_TEST_SUITE( ClientTest );
-    CPPUNIT_TEST( testOpenResource );
-    CPPUNIT_TEST_SUITE_END();
+TEST_CASE("Client test", "[client]") {
 
-    static constexpr const char* resource_config = "{ \"path\" : \"mydb\" }";
-    UUID resource_id;
+    auto engine = thallium::engine("na+sm", THALLIUM_SERVER_MODE);
+    // Initialize the Sonata provider
+    alpha::Provider provider(engine);
+    alpha::Admin admin(engine);
+    std::string addr = engine.self();
+    auto resource_id = admin.createResource(addr, 0, resource_type, resource_config);
 
-    public:
-
-    void setUp() {
-        alpha::Admin admin(engine);
-        std::string addr = engine.self();
-        resource_id = admin.createResource(addr, 0, resource_type, resource_config);
-    }
-
-    void tearDown() {
-        alpha::Admin admin(engine);
-        std::string addr = engine.self();
-        admin.destroyResource(addr, 0, resource_id);
-    }
-
-    void testOpenResource() {
+    SECTION("Open resource") {
         alpha::Client client(engine);
         std::string addr = engine.self();
-        
-        Resource my_resource = client.open(addr, 0, resource_id);
-        CPPUNIT_ASSERT_MESSAGE(
-                "Resource should be valid",
-                static_cast<bool>(my_resource));
 
-        auto bad_id = UUID::generate();
-        CPPUNIT_ASSERT_THROW_MESSAGE(
-                "client.open should fail on non-existing resource",
-                client.open(addr, 0, bad_id);
+        alpha::ResourceHandle my_resource = client.makeResourceHandle(addr, 0, resource_id);
+        REQUIRE(static_cast<bool>(my_resource));
+
+        auto bad_id = alpha::UUID::generate();
+        REQUIRE_THROWS_AS(client.makeResourceHandle(addr, 0, bad_id), alpha::Exception);
     }
-};
-CPPUNIT_TEST_SUITE_REGISTRATION( ClientTest );
+
+    admin.destroyResource(addr, 0, resource_id);
+    engine.finalize();
+}
