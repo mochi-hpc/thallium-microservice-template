@@ -5,7 +5,7 @@ project (alpha C CXX)
 set (CMAKE_CXX_STANDARD 14)
 enable_testing ()
 
-add_definitions (-g -Wextra -Wall -Wpedantic)
+add_definitions (-Wextra -Wall -Wpedantic)
 
 option (ENABLE_TESTS    "Build tests" OFF)
 option (ENABLE_EXAMPLES "Build examples" OFF)
@@ -34,8 +34,6 @@ find_package (PkgConfig REQUIRED)
 find_package (thallium REQUIRED)
 # search for uuid
 pkg_check_modules (UUID REQUIRED IMPORTED_TARGET uuid)
-# comment if you don't need abt-io
-pkg_check_modules (ABTIO REQUIRED IMPORTED_TARGET abt-io)
 # search for nlohmann/json
 find_package (nlohmann_json REQUIRED)
 # search for TCLAP
