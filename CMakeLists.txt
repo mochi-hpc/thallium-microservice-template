@@ -7,6 +7,8 @@ enable_testing ()
 
 add_definitions (-Wextra -Wall -Wpedantic)
 
+add_library (coverage_config INTERFACE)
+
 option (ENABLE_TESTS    "Build tests" OFF)
 option (ENABLE_EXAMPLES "Build examples" OFF)
 option (ENABLE_BEDROCK  "Build bedrock module" OFF)
