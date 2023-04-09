@@ -12,6 +12,8 @@ check_required_components(alpha)
 
 include (CMakeFindDependencyMacro)
 find_dependency (thallium)
+find_dependency (PkgConfig)
+pkg_check_modules (uuid REQUIRED uuid)
 
 # FIXME: add more dependencies if needed
 
