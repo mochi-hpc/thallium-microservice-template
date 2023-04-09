@@ -30,7 +30,7 @@ set (alpha-vers "${ALPHA_VERSION_MAJOR}.${ALPHA_VERSION_MINOR}")
 add_library (alpha-server ${server-src-files} ${dummy-src-files})
 target_link_libraries (alpha-server
     PUBLIC thallium PkgConfig::UUID
-    PRIVATE nlohmann_json::nlohmann_json spdlog::spdlog)
+    PRIVATE nlohmann_json::nlohmann_json spdlog::spdlog coverage_config)
 target_include_directories (alpha-server PUBLIC $<INSTALL_INTERFACE:include>)
 target_include_directories (alpha-server BEFORE PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>)
@@ -43,7 +43,7 @@ set_target_properties (alpha-server
 # client library
 add_library (alpha-client ${client-src-files})
 target_link_libraries (alpha-client
-    PUBLIC thallium PkgConfig::UUID PRIVATE spdlog::spdlog)
+    PUBLIC thallium PkgConfig::UUID PRIVATE spdlog::spdlog coverage_config)
 target_include_directories (alpha-client PUBLIC $<INSTALL_INTERFACE:include>)
 target_include_directories (alpha-client BEFORE PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>)
@@ -56,7 +56,7 @@ set_target_properties (alpha-client
 # admin library
 add_library (alpha-admin ${admin-src-files})
 target_link_libraries (alpha-admin PUBLIC thallium PkgConfig::UUID
-    PRIVATE nlohmann_json::nlohmann_json spdlog::spdlog)
+    PRIVATE nlohmann_json::nlohmann_json spdlog::spdlog coverage_config)
 target_include_directories (alpha-admin PUBLIC $<INSTALL_INTERFACE:include>)
 target_include_directories (alpha-admin BEFORE PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>)
@@ -69,7 +69,7 @@ set_target_properties (alpha-admin
 if (${ENABLE_BEDROCK})
 # bedrock module library
 add_library (alpha-bedrock-module ${module-src-files})
-target_link_libraries (alpha-bedrock-module alpha-server alpha-admin alpha-client bedrock-server)
+target_link_libraries (alpha-bedrock-module alpha-server alpha-admin alpha-client bedrock-server coverage_config)
 target_include_directories (alpha-bedrock-module PUBLIC $<INSTALL_INTERFACE:include>)
 target_include_directories (alpha-bedrock-module BEFORE PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>)
@@ -104,7 +104,7 @@ configure_file ("alpha-client.pc.in" "alpha-client.pc" @ONLY)
 configure_file ("alpha-admin.pc.in"  "alpha-admin.pc"  @ONLY)
 
 # configure config.h
-configure_file ("config.h.in" "config.h" @ONLY) 
+configure_file ("config.h.in" "config.h" @ONLY)
 
 # "make install" rules
 install (TARGETS alpha-admin alpha-server alpha-client

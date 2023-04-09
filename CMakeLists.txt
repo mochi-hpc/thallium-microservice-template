@@ -9,7 +9,8 @@ add_definitions (-Wextra -Wall -Wpedantic)
 
 option (ENABLE_TESTS    "Build tests" OFF)
 option (ENABLE_EXAMPLES "Build examples" OFF)
-option (ENABLE_BEDROCK  "Build bedrock module" ON)
+option (ENABLE_BEDROCK  "Build bedrock module" OFF)
+option (ENABLE_COVERAGE "Build with coverage" OFF)
 
 # add our cmake module directory to the path
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
@@ -28,6 +29,19 @@ if (NOT CMAKE_BUILD_TYPE)
 endif ()
 set (CMAKE_PREFIX_PATH "" CACHE STRING "External dependencies path")
 set (BUILD_SHARED_LIBS "ON" CACHE BOOL "Build a shared library")
+
+if (ENABLE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options (coverage_config INTERFACE
+        -O0        # no optimization
+        -g         # generate debug info
+        --coverage # sets all required flags
+    )
+    if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
+        target_link_options (coverage_config INTERFACE --coverage)
+    else ()
+        target_link_libraries (coverage_config INTERFACE --coverage)
+    endif ()
+endif ()
 
 find_package (PkgConfig REQUIRED)
 # search fo thallium
