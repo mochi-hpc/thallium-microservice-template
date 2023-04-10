@@ -1,6 +1,6 @@
 /*
  * (C) 2020 The University of Chicago
- * 
+ *
  * See COPYRIGHT in top-level directory.
  */
 #include <alpha/Admin.hpp>
@@ -26,7 +26,7 @@ static void parse_command_line(int argc, char** argv);
 int main(int argc, char** argv) {
     parse_command_line(argc, argv);
     spdlog::set_level(spdlog::level::from_str(g_log_level));
-    
+
     // Initialize the thallium server
     tl::engine engine(g_protocol, THALLIUM_CLIENT_MODE);
 
