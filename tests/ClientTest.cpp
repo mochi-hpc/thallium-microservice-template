@@ -16,7 +16,7 @@ static const std::string resource_type = "dummy";
 TEST_CASE("Client test", "[client]") {
 
     auto engine = thallium::engine("na+sm", THALLIUM_SERVER_MODE);
-    // Initialize the Sonata provider
+    // Initialize the provider
     alpha::Provider provider(engine);
     alpha::Admin admin(engine);
     std::string addr = engine.self();

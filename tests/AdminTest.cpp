@@ -14,7 +14,7 @@ static constexpr const char* resource_config = "{ \"path\" : \"mydb\" }";
 TEST_CASE("Admin tests", "[admin]") {
 
     auto engine = thallium::engine("na+sm", THALLIUM_SERVER_MODE);
-    // Initialize the Sonata provider
+    // Initialize the provider
     alpha::Provider provider(engine);
 
     SECTION("Create an admin") {
