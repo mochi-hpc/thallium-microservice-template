@@ -65,7 +65,7 @@ class AsyncRequest {
     bool completed() const;
 
     /**
-     * @brief Checks if the Collection object is valid.
+     * @brief Checks if the object is valid.
      */
     operator bool() const;
 

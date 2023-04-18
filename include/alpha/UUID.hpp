@@ -1,6 +1,6 @@
 /*
  * (C) 2020 The University of Chicago
- * 
+ *
  * See COPYRIGHT in top-level directory.
  */
 #ifndef __ALPHA_UUID_UTIL_HPP
@@ -122,7 +122,7 @@ struct UUID {
      * @brief randomize the current UUID.
      */
     void randomize() {
-        uuid_generate(m_data); 
+        uuid_generate(m_data);
     }
 
     /**
@@ -153,7 +153,7 @@ namespace std {
      * @brief Specialization of std::hash for alpha::UUID
      */
     template<>
-    struct hash<alpha::UUID> 
+    struct hash<alpha::UUID>
     {
         size_t operator()(const alpha::UUID& id) const
         {

@@ -150,14 +150,14 @@ class Admin {
                       const std::string& token="") const;
 
     /**
-     * @brief Opens an existing database to the target provider.
+     * @brief Opens an existing resource to the target provider.
      * The config object must be a JSON object acceptable
      * by the desired backend's open function.
      *
      * @param address Address of the target provider.
      * @param provider_id Provider id.
      * @param type Type of the resource to create.
-     * @param config JSON configuration for the database.
+     * @param config JSON configuration for the resource.
      */
     UUID openResource(const std::string& address,
                       uint16_t provider_id,

@@ -1,6 +1,6 @@
 /*
  * (C) 2020 The University of Chicago
- * 
+ *
  * See COPYRIGHT in top-level directory.
  */
 #ifndef __ALPHA_RESOURCE_HANDLE_HPP
@@ -62,7 +62,7 @@ class ResourceHandle {
     ~ResourceHandle();
 
     /**
-     * @brief Returns the client this database has been opened with.
+     * @brief Returns the client this resource has been opened with.
      */
     Client client() const;
 

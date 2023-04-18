@@ -1,6 +1,6 @@
 /*
  * (C) 2020 The University of Chicago
- * 
+ *
  * See COPYRIGHT in top-level directory.
  */
 #ifndef __ALPHA_BACKEND_HPP
@@ -34,7 +34,7 @@ namespace alpha {
  * std::unique_ptr<Backend> attach(const json& config)
  */
 class Backend {
-    
+
     public:
 
     /**
@@ -121,7 +121,7 @@ class ResourceFactory {
                                                    const json& config);
 
     /**
-     * @brief Opens an existing database and returns a unique_ptr to the
+     * @brief Opens an existing resource and returns a unique_ptr to the
      * created backend instance.
      *
      * @param backend_name Name of the backend to use.
@@ -138,7 +138,7 @@ class ResourceFactory {
 
     static std::unordered_map<std::string,
                 std::function<std::unique_ptr<Backend>(const thallium::engine&, const json&)>> create_fn;
-    
+
     static std::unordered_map<std::string,
                 std::function<std::unique_ptr<Backend>(const thallium::engine&, const json&)>> open_fn;
 };

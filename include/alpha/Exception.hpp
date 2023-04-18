@@ -1,6 +1,6 @@
 /*
  * (C) 2020 The University of Chicago
- * 
+ *
  * See COPYRIGHT in top-level directory.
  */
 #ifndef __ALPHA_EXCEPTION_HPP
@@ -24,7 +24,6 @@ class Exception : public std::exception {
     virtual const char* what() const noexcept override {
         return m_error.c_str();
     }
-    
 };
 
 }

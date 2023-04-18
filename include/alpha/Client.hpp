@@ -83,7 +83,7 @@ class Client {
      * @param address Address of the provider holding the database.
      * @param provider_id Provider id.
      * @param resource_id Resource UUID.
-     * @param check Checks if the Database exists by issuing an RPC.
+     * @param check Checks if the Resource exists by issuing an RPC.
      *
      * @return a ResourceHandle instance.
      */
