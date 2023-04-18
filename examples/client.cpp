@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
         // Initialize a Client
         alpha::Client client(engine);
 
-        // Open the Database "mydatabase" from provider 0
+        // Open the Resource "myresource" from provider 0
         alpha::ResourceHandle resource =
             client.makeResourceHandle(g_address, g_provider_id,
                     alpha::UUID::from_string(g_resource.c_str()));
