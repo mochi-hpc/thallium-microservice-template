@@ -1,6 +1,6 @@
 /*
  * (C) 2020 The University of Chicago
- * 
+ *
  * See COPYRIGHT in top-level directory.
  */
 #ifndef __ALPHA_PROVIDER_IMPL_H
@@ -46,6 +46,7 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
 
     public:
 
+    tl::engine           m_engine;
     std::string          m_token;
     tl::pool             m_pool;
     // Admin RPC
@@ -63,6 +64,7 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
 
     ProviderImpl(const tl::engine& engine, uint16_t provider_id, const tl::pool& pool)
     : tl::provider<ProviderImpl>(engine, provider_id)
+    , m_engine(engine)
     , m_pool(pool)
     , m_create_resource(define("alpha_create_resource", &ProviderImpl::createResource, pool))
     , m_open_resource(define("alpha_open_resource", &ProviderImpl::openResource, pool))
