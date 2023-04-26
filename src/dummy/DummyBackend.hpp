@@ -1,6 +1,6 @@
 /*
  * (C) 2020 The University of Chicago
- * 
+ *
  * See COPYRIGHT in top-level directory.
  */
 #ifndef __DUMMY_BACKEND_HPP
@@ -14,7 +14,7 @@ using json = nlohmann::json;
  * Dummy implementation of an alpha Backend.
  */
 class DummyResource : public alpha::Backend {
-   
+
     json m_config;
 
     public:
@@ -49,6 +49,11 @@ class DummyResource : public alpha::Backend {
      * @brief Destructor.
      */
     virtual ~DummyResource() = default;
+
+    /**
+     * @brief Get the resource's configuration as a JSON-formatted string.
+     */
+    std::string getConfig() const override;
 
     /**
      * @brief Prints Hello World.

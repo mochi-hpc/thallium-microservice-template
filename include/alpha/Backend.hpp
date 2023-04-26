@@ -35,6 +35,11 @@ namespace alpha {
  */
 class Backend {
 
+    template<typename BackendType>
+    friend class ::__AlphaBackendRegistration;
+
+    std::string m_name;
+
     public:
 
     /**
@@ -66,6 +71,18 @@ class Backend {
      * @brief Destructor.
      */
     virtual ~Backend() = default;
+
+    /**
+     * @brief Return the name of backend.
+     */
+    const std::string& name() const {
+        return m_name;
+    }
+
+    /**
+     * @brief Returns a JSON-formatted configuration string.
+     */
+    virtual std::string getConfig() const = 0;
 
     /**
      * @brief Prints Hello World.
@@ -158,11 +175,15 @@ class __AlphaBackendRegistration {
 
     __AlphaBackendRegistration(const std::string& backend_name)
     {
-        alpha::ResourceFactory::create_fn[backend_name] = [](const thallium::engine& engine, const json& config) {
-            return BackendType::create(engine, config);
+        alpha::ResourceFactory::create_fn[backend_name] = [backend_name](const thallium::engine& engine, const json& config) {
+            auto p = BackendType::create(engine, config);
+            p->m_name = backend_name;
+            return p;
         };
-        alpha::ResourceFactory::open_fn[backend_name] = [](const thallium::engine& engine, const json& config) {
-            return BackendType::open(engine, config);
+        alpha::ResourceFactory::open_fn[backend_name] = [backend_name](const thallium::engine& engine, const json& config) {
+            auto p = BackendType::open(engine, config);
+            p->m_name = backend_name;
+            return p;
         };
     }
 };

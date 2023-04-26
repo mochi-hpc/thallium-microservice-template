@@ -1,6 +1,6 @@
 /*
  * (C) 2020 The University of Chicago
- * 
+ *
  * See COPYRIGHT in top-level directory.
  */
 #include "DummyBackend.hpp"
@@ -10,6 +10,10 @@ ALPHA_REGISTER_BACKEND(dummy, DummyResource);
 
 void DummyResource::sayHello() {
     std::cout << "Hello World" << std::endl;
+}
+
+std::string DummyResource::getConfig() const {
+    return m_config.dump();
 }
 
 alpha::RequestResult<int32_t> DummyResource::computeSum(int32_t x, int32_t y) {
