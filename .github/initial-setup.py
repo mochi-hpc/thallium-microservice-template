@@ -95,7 +95,7 @@ if __name__ == '__main__':
         'Resource' : resource_name.capitalize()
     }
     files_to_edit = list_files_to_edit('.',
-        extensions=['.cpp', '.h', '.hpp', '.txt', '.in'],
+        extensions=['.cpp', '.h', '.hpp', '.txt', '.in', '.json'],
         exclude_directories=['.git', '.github', 'build', '.spack-env', 'munit'],
         exclude_files=['uthash.h'])
     for f in files_to_edit:
