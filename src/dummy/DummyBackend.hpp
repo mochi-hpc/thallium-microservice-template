@@ -15,15 +15,15 @@ using json = nlohmann::json;
  */
 class DummyResource : public alpha::Backend {
 
-    json m_config;
+    thallium::engine m_engine;
+    json             m_config;
 
     public:
 
     /**
      * @brief Constructor.
      */
-    DummyResource(const json& config)
-    : m_config(config) {}
+    DummyResource(thallium::engine engine, const json& config);
 
     /**
      * @brief Move-constructor.

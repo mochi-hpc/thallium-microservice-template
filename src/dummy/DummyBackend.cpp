@@ -8,6 +8,12 @@
 
 ALPHA_REGISTER_BACKEND(dummy, DummyResource);
 
+DummyResource::DummyResource(thallium::engine engine, const json& config)
+: m_engine(std::move(engine)),
+  m_config(config) {
+
+}
+
 void DummyResource::sayHello() {
     std::cout << "Hello World" << std::endl;
 }
@@ -31,10 +37,10 @@ alpha::RequestResult<bool> DummyResource::destroy() {
 
 std::unique_ptr<alpha::Backend> DummyResource::create(const thallium::engine& engine, const json& config) {
     (void)engine;
-    return std::unique_ptr<alpha::Backend>(new DummyResource(config));
+    return std::unique_ptr<alpha::Backend>(new DummyResource(engine, config));
 }
 
 std::unique_ptr<alpha::Backend> DummyResource::open(const thallium::engine& engine, const json& config) {
     (void)engine;
-    return std::unique_ptr<alpha::Backend>(new DummyResource(config));
+    return std::unique_ptr<alpha::Backend>(new DummyResource(engine, config));
 }
