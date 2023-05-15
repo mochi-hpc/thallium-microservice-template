@@ -342,7 +342,7 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
     void computeSumRPC(const tl::request& req,
                        const UUID& resource_id,
                        int32_t x, int32_t y) {
-        spdlog::trace("[provider:{}] Received sayHello request for resource {}", id(), resource_id.to_string());
+        spdlog::trace("[provider:{}] Received computeSum request for resource {}", id(), resource_id.to_string());
         RequestResult<int32_t> result;
         FIND_RESOURCE(resource);
         result = resource->computeSum(x, y);
