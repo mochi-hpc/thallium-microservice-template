@@ -71,7 +71,7 @@ set (ALPHA_VERSION
 add_subdirectory (src)
 if (${ENABLE_TESTS})
     enable_testing ()
-    find_package (Catch2 QUIET)
+    find_package (Catch2 3.0.1 QUIET)
     if (NOT Catch2_FOUND)
         include (FetchContent)
         FetchContent_Declare (
