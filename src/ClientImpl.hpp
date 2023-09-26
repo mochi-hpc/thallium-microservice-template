@@ -21,13 +21,11 @@ class ClientImpl {
 
     tl::engine           m_engine;
     tl::remote_procedure m_check_resource;
-    tl::remote_procedure m_say_hello;
     tl::remote_procedure m_compute_sum;
 
     ClientImpl(const tl::engine& engine)
     : m_engine(engine)
     , m_check_resource(m_engine.define("alpha_check_resource"))
-    , m_say_hello(m_engine.define("alpha_say_hello").disable_response())
     , m_compute_sum(m_engine.define("alpha_compute_sum"))
     {}
 

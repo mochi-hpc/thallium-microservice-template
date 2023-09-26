@@ -46,10 +46,7 @@ UUID Admin::createResource(const std::string& address,
     auto endpoint  = self->m_engine.lookup(address);
     auto ph        = tl::provider_handle(endpoint, provider_id);
     Result<UUID> result = self->m_create_resource.on(ph)(token, resource_type, resource_config);
-    if(not result.success()) {
-        throw Exception(result.error());
-    }
-    return result.value();
+    return std::move(result).valueOrThrow();
 }
 
 UUID Admin::openResource(const std::string& address,
@@ -60,10 +57,7 @@ UUID Admin::openResource(const std::string& address,
     auto endpoint  = self->m_engine.lookup(address);
     auto ph        = tl::provider_handle(endpoint, provider_id);
     Result<UUID> result = self->m_open_resource.on(ph)(token, resource_type, resource_config);
-    if(not result.success()) {
-        throw Exception(result.error());
-    }
-    return result.value();
+    return std::move(result).valueOrThrow();
 }
 
 void Admin::closeResource(const std::string& address,
@@ -73,9 +67,7 @@ void Admin::closeResource(const std::string& address,
     auto endpoint  = self->m_engine.lookup(address);
     auto ph        = tl::provider_handle(endpoint, provider_id);
     Result<bool> result = self->m_close_resource.on(ph)(token, resource_id);
-    if(not result.success()) {
-        throw Exception(result.error());
-    }
+    result.check();
 }
 
 void Admin::destroyResource(const std::string& address,
@@ -85,9 +77,7 @@ void Admin::destroyResource(const std::string& address,
     auto endpoint  = self->m_engine.lookup(address);
     auto ph        = tl::provider_handle(endpoint, provider_id);
     Result<bool> result = self->m_destroy_resource.on(ph)(token, resource_id);
-    if(not result.success()) {
-        throw Exception(result.error());
-    }
+    result.check();
 }
 
 void Admin::shutdownServer(const std::string& address) const {

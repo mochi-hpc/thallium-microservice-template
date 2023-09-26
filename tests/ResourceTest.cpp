@@ -25,9 +25,6 @@ TEST_CASE("Resource test", "[resource]") {
 
         auto rh = client.makeResourceHandle(addr, 0, resource_id);
 
-        SECTION("Send Hello RPC") {
-            REQUIRE_NOTHROW(rh.sayHello());
-        }
         SECTION("Send Sum RPC") {
             int32_t result = 0;
             REQUIRE_NOTHROW(rh.computeSum(42, 51, &result));

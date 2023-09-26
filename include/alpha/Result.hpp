@@ -6,6 +6,7 @@
 #ifndef __ALPHA_RESULT_HPP
 #define __ALPHA_RESULT_HPP
 
+#include <alpha/Exception.hpp>
 #include <string>
 
 namespace alpha {
@@ -80,6 +81,53 @@ class Result {
     }
 
     /**
+     * @brief Value if the request succeeded,
+     * throws otherwise.
+     */
+    const T& valueOrThrow() const & {
+        check();
+        return m_value;
+    }
+
+    /**
+     * @brief Value if the request succeeded,
+     * throws otherwise.
+     */
+    T&& valueOrThrow() && {
+        check();
+        return std::move(m_value);
+    }
+
+    /**
+     * @brief Execute a function on the value
+     * if the value is present, otherwise throws
+     * an Exception.
+     */
+    template<typename F>
+    decltype(auto) andThen(F&& f) const & {
+        return std::forward<F>(f)(valueOrThrow());
+    }
+
+    /**
+     * @brief Execute a function on the value
+     * if the value is present, otherwise throws
+     * an Exception.
+     */
+    template<typename F>
+    decltype(auto) andThen(F&& f) && {
+        return std::forward<F>(f)(valueOrThrow());
+    }
+
+    /**
+     * @brief Throw an Exception if the Result
+     * contains an error.
+     */
+    void check() const {
+        if(!m_success)
+            throw Exception(m_error);
+    }
+
+    /**
      * @brief Serialization function for Thallium.
      *
      * @tparam Archive Archive type.
@@ -88,8 +136,11 @@ class Result {
     template<typename Archive>
     void serialize(Archive& a) {
         a & m_success;
-        a & m_error;
-        a & m_value;
+        if(m_success) {
+            a & m_value;
+        } else {
+            a & m_error;
+        }
     }
 
     private:
@@ -132,6 +183,31 @@ class Result<std::string> {
 
     const std::string& value() const {
         return m_content;
+    }
+
+    const std::string& valueOrThrow() const & {
+        check();
+        return m_content;
+    }
+
+    std::string&& valueOrThrow() && {
+        check();
+        return std::move(m_content);
+    }
+
+    template<typename F>
+    decltype(auto) andThen(F&& f) const & {
+        return std::forward<F>(f)(valueOrThrow());
+    }
+
+    template<typename F>
+    decltype(auto) andThen(F&& f) && {
+        return std::forward<F>(f)(valueOrThrow());
+    }
+
+    void check() const {
+        if(!m_success)
+            throw Exception(m_content);
     }
 
     template<typename Archive>
@@ -181,10 +257,27 @@ class Result<bool> {
         return m_success;
     }
 
+    bool valueOrThrow() const {
+        check();
+        return true;
+    }
+
+    template<typename F>
+    decltype(auto) andThen(F&& f) const {
+        check();
+        return std::forward<F>(f)();
+    }
+
+    void check() const {
+        if(!m_success)
+            throw Exception(m_error);
+    }
+
     template<typename Archive>
     void serialize(Archive& a) {
         a & m_success;
-        a & m_error;
+        if(!m_success)
+            a & m_error;
     }
 
     private:

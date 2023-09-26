@@ -35,8 +35,6 @@ int main(int argc, char** argv) {
             client.makeResourceHandle(g_address, g_provider_id,
                     alpha::UUID::from_string(g_resource.c_str()));
 
-        resource.sayHello();
-
         int32_t result;
         resource.computeSum(32, 54, &result);
 

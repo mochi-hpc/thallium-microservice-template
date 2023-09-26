@@ -26,17 +26,53 @@
             if(it == m_backends.end()) {\
                 result.success() = false;\
                 result.error() = "Resource with UUID "s + resource_id.to_string() + " not found";\
-                req.respond(result);\
-                spdlog::error("[provider:{}] Resource {} not found", id(), resource_id.to_string());\
+                error(result.error());\
                 return;\
             }\
             __var__ = it->second;\
-        }while(0)
+        } while(0)
 
 namespace alpha {
 
 using namespace std::string_literals;
 namespace tl = thallium;
+
+/**
+ * @brief This class automatically deregisters a tl::remote_procedure
+ * when the ProviderImpl's destructor is called.
+ */
+struct AutoDeregistering : public tl::remote_procedure {
+
+    AutoDeregistering(tl::remote_procedure rpc)
+    : tl::remote_procedure(std::move(rpc)) {}
+
+    ~AutoDeregistering() {
+        deregister();
+    }
+};
+
+/**
+ * @brief This class automatically calls req.respond(resp)
+ * when its constructor is called, helping developers not
+ * forget to respond in all code branches.
+ */
+template<typename ResponseType>
+struct AutoResponse {
+
+    AutoResponse(const tl::request& req, ResponseType& resp)
+    : m_req(req)
+    , m_resp(resp) {}
+
+    AutoResponse(const AutoResponse&) = delete;
+    AutoResponse(AutoResponse&&) = delete;
+
+    ~AutoResponse() {
+        m_req.respond(m_resp);
+    }
+
+    const tl::request& m_req;
+    ResponseType&      m_resp;
+};
 
 class ProviderImpl : public tl::provider<ProviderImpl> {
 
@@ -44,20 +80,35 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
 
     using json = nlohmann::json;
 
+    #define DEF_LOGGING_FUNCTION(__name__)                         \
+    template<typename ... Args>                                    \
+    void __name__(Args&&... args) {                                \
+        auto msg = fmt::format(std::forward<Args>(args)...);       \
+        spdlog::__name__("[alpha:{}] {}", get_provider_id(), msg); \
+    }
+
+    DEF_LOGGING_FUNCTION(trace)
+    DEF_LOGGING_FUNCTION(debug)
+    DEF_LOGGING_FUNCTION(info)
+    DEF_LOGGING_FUNCTION(warn)
+    DEF_LOGGING_FUNCTION(error)
+    DEF_LOGGING_FUNCTION(critical)
+
+    #undef DEF_LOGGING_FUNCTION
+
     public:
 
     tl::engine           m_engine;
     std::string          m_token;
     tl::pool             m_pool;
     // Admin RPC
-    tl::remote_procedure m_create_resource;
-    tl::remote_procedure m_open_resource;
-    tl::remote_procedure m_close_resource;
-    tl::remote_procedure m_destroy_resource;
+    AutoDeregistering m_create_resource;
+    AutoDeregistering m_open_resource;
+    AutoDeregistering m_close_resource;
+    AutoDeregistering m_destroy_resource;
     // Client RPC
-    tl::remote_procedure m_check_resource;
-    tl::remote_procedure m_say_hello;
-    tl::remote_procedure m_compute_sum;
+    AutoDeregistering m_check_resource;
+    AutoDeregistering m_compute_sum;
     // Backends
     std::unordered_map<UUID, std::shared_ptr<Backend>> m_backends;
     tl::mutex m_backends_mtx;
@@ -71,16 +122,14 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
     , m_close_resource(define("alpha_close_resource", &ProviderImpl::closeResourceRPC, pool))
     , m_destroy_resource(define("alpha_destroy_resource", &ProviderImpl::destroyResourceRPC, pool))
     , m_check_resource(define("alpha_check_resource", &ProviderImpl::checkResourceRPC, pool))
-    , m_say_hello(define("alpha_say_hello", &ProviderImpl::sayHelloRPC, pool))
     , m_compute_sum(define("alpha_compute_sum",  &ProviderImpl::computeSumRPC, pool))
     {
-        spdlog::trace("[provider:{0}] Registered provider with id {0}", id());
+        trace("Registered provider with id {}", get_provider_id());
         json json_config;
         try {
             json_config = json::parse(config);
         } catch(json::parse_error& e) {
-            spdlog::error("[provider:{}] Could not parse provider configuration: {}",
-                    id(), e.what());
+            error("Could not parse provider configuration: {}", e.what());
             return;
         }
         if(!json_config.is_object()) return;
@@ -97,15 +146,7 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
     }
 
     ~ProviderImpl() {
-        spdlog::trace("[provider:{}] Deregistering provider", id());
-        m_create_resource.deregister();
-        m_open_resource.deregister();
-        m_close_resource.deregister();
-        m_destroy_resource.deregister();
-        m_check_resource.deregister();
-        m_say_hello.deregister();
-        m_compute_sum.deregister();
-        spdlog::trace("[provider:{}]    => done!", id());
+        trace("Deregistering provider");
     }
 
     std::string getConfig() const {
@@ -133,8 +174,8 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
         } catch(json::parse_error& e) {
             result.error() = e.what();
             result.success() = false;
-            spdlog::error("[provider:{}] Could not parse resource configuration for resource {}",
-                    id(), resource_id.to_string());
+            error("Could not parse resource configuration for resource {}",
+                  resource_id.to_string());
             return result;
         }
 
@@ -144,17 +185,16 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
         } catch(const std::exception& ex) {
             result.success() = false;
             result.error() = ex.what();
-            spdlog::error("[provider:{}] Error when creating resource {} of type {}:",
-                    id(), resource_id.to_string(), resource_type);
-            spdlog::error("[provider:{}]    => {}", id(), result.error());
+            error("Error when creating resource {} of type {}: {}",
+                   resource_id.to_string(), resource_type, result.error());
             return result;
         }
 
         if(not backend) {
             result.success() = false;
             result.error() = "Unknown resource type "s + resource_type;
-            spdlog::error("[provider:{}] Unknown resource type {} for resource {}",
-                    id(), resource_type, resource_id.to_string());
+            error("Unknown resource type {} for resource {}",
+                  resource_type, resource_id.to_string());
             return result;
         } else {
             std::lock_guard<tl::mutex> lock(m_backends_mtx);
@@ -162,8 +202,8 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
             result.value() = resource_id;
         }
 
-        spdlog::trace("[provider:{}] Successfully created resource {} of type {}",
-                id(), resource_id.to_string(), resource_type);
+        trace("Successfully created resource {} of type {}",
+              resource_id.to_string(), resource_type);
         return result;
     }
 
@@ -172,23 +212,21 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
                            const std::string& resource_type,
                            const std::string& resource_config) {
 
-        spdlog::trace("[provider:{}] Received createResource request", id());
-        spdlog::trace("[provider:{}]    => type = {}", id(), resource_type);
-        spdlog::trace("[provider:{}]    => config = {}", id(), resource_config);
+        trace("Received createResource request", id());
+        trace(" => type = {}", resource_type);
+        trace(" => config = {}", resource_config);
 
         Result<UUID> result;
+        AutoResponse<decltype(result)> response{req, result};
 
         if(m_token.size() > 0 && m_token != token) {
             result.success() = false;
             result.error() = "Invalid security token";
-            req.respond(result);
-            spdlog::error("[provider:{}] Invalid security token {}", id(), token);
+            error("Invalid security token {}", token);
             return;
         }
 
         result = createResource(resource_type, resource_config);
-
-        req.respond(result);
     }
 
     void openResourceRPC(const tl::request& req,
@@ -196,18 +234,18 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
                          const std::string& resource_type,
                          const std::string& resource_config) {
 
-        spdlog::trace("[provider:{}] Received openResource request", id());
-        spdlog::trace("[provider:{}]    => type = {}", id(), resource_type);
-        spdlog::trace("[provider:{}]    => config = {}", id(), resource_config);
+        trace("Received openResource request");
+        trace(" => type = {}", resource_type);
+        trace(" => config = {}", resource_config);
 
         auto resource_id = UUID::generate();
         Result<UUID> result;
+        AutoResponse<decltype(result)> response{req, result};
 
         if(m_token.size() > 0 && m_token != token) {
             result.success() = false;
             result.error() = "Invalid security token";
-            req.respond(result);
-            spdlog::error("[provider:{}] Invalid security token {}", id(), token);
+            error("Invalid security token {}", token);
             return;
         }
 
@@ -217,9 +255,8 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
         } catch(json::parse_error& e) {
             result.error() = e.what();
             result.success() = false;
-            spdlog::error("[provider:{}] Could not parse resource configuration for resource {}",
-                    id(), resource_id.to_string());
-            req.respond(result);
+            error("Could not parse resource configuration for resource {}",
+                  resource_id.to_string());
             return;
         }
 
@@ -229,19 +266,16 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
         } catch(const std::exception& ex) {
             result.success() = false;
             result.error() = ex.what();
-            spdlog::error("[provider:{}] Error when opening resource {} of type {}:",
-                    id(), resource_id.to_string(), resource_type);
-            spdlog::error("[provider:{}]    => {}", id(), result.error());
-            req.respond(result);
+            error("Error when opening resource {} of type {}: {}",
+                  resource_id.to_string(), resource_type, result.error());
             return;
         }
 
         if(not backend) {
             result.success() = false;
             result.error() = "Unknown resource type "s + resource_type;
-            spdlog::error("[provider:{}] Unknown resource type {} for resource {}",
-                    id(), resource_type, resource_id.to_string());
-            req.respond(result);
+            error("Unknown resource type {} for resource {}",
+                  resource_type, resource_id.to_string());
             return;
         } else {
             std::lock_guard<tl::mutex> lock(m_backends_mtx);
@@ -249,24 +283,23 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
             result.value() = resource_id;
         }
 
-        req.respond(result);
-        spdlog::trace("[provider:{}] Successfully created resource {} of type {}",
-                id(), resource_id.to_string(), resource_type);
+        trace("Successfully created resource {} of type {}",
+              resource_id.to_string(), resource_type);
     }
 
     void closeResourceRPC(const tl::request& req,
                           const std::string& token,
                           const UUID& resource_id) {
-        spdlog::trace("[provider:{}] Received closeResource request for resource {}",
-                id(), resource_id.to_string());
+        trace("Received closeResource request for resource {}",
+              resource_id.to_string());
 
         Result<bool> result;
+        AutoResponse<decltype(result)> response{req, result};
 
         if(m_token.size() > 0 && m_token != token) {
             result.success() = false;
             result.error() = "Invalid security token";
-            req.respond(result);
-            spdlog::error("[provider:{}] Invalid security token {}", id(), token);
+            error("Invalid security token {}", token);
             return;
         }
 
@@ -276,28 +309,27 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
             if(m_backends.count(resource_id) == 0) {
                 result.success() = false;
                 result.error() = "Resource "s + resource_id.to_string() + " not found";
-                req.respond(result);
-                spdlog::error("[provider:{}] Resource {} not found", id(), resource_id.to_string());
+                error(result.error());
                 return;
             }
 
             m_backends.erase(resource_id);
         }
-        req.respond(result);
-        spdlog::trace("[provider:{}] Resource {} successfully closed", id(), resource_id.to_string());
+
+        trace("Resource {} successfully closed", resource_id.to_string());
     }
 
     void destroyResourceRPC(const tl::request& req,
                             const std::string& token,
                             const UUID& resource_id) {
         Result<bool> result;
-        spdlog::trace("[provider:{}] Received destroyResource request for resource {}", id(), resource_id.to_string());
+        AutoResponse<decltype(result)> response{req, result};
+        trace("Received destroyResource request for resource {}", resource_id.to_string());
 
         if(m_token.size() > 0 && m_token != token) {
             result.success() = false;
             result.error() = "Invalid security token";
-            req.respond(result);
-            spdlog::error("[provider:{}] Invalid security token {}", id(), token);
+            error("Invalid security token {}", token);
             return;
         }
 
@@ -307,8 +339,7 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
             if(m_backends.count(resource_id) == 0) {
                 result.success() = false;
                 result.error() = "Resource "s + resource_id.to_string() + " not found";
-                req.respond(result);
-                spdlog::error("[provider:{}] Resource {} not found", id(), resource_id.to_string());
+                error(result.error());
                 return;
             }
 
@@ -316,38 +347,27 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
             m_backends.erase(resource_id);
         }
 
-        req.respond(result);
-        spdlog::trace("[provider:{}] Resource {} successfully destroyed", id(), resource_id.to_string());
+        trace("Resource {} successfully destroyed", resource_id.to_string());
     }
 
     void checkResourceRPC(const tl::request& req,
                           const UUID& resource_id) {
-        spdlog::trace("[provider:{}] Received checkResource request for resource {}", id(), resource_id.to_string());
+        trace("Received checkResource request for resource {}", resource_id.to_string());
         Result<bool> result;
+        AutoResponse<decltype(result)> response{req, result};
         FIND_RESOURCE(resource);
-        result.success() = true;
-        req.respond(result);
-        spdlog::trace("[provider:{}] Code successfully executed on resource {}", id(), resource_id.to_string());
-    }
-
-    void sayHelloRPC(const tl::request& req,
-                     const UUID& resource_id) {
-        spdlog::trace("[provider:{}] Received sayHello request for resource {}", id(), resource_id.to_string());
-        Result<bool> result;
-        FIND_RESOURCE(resource);
-        resource->sayHello();
-        spdlog::trace("[provider:{}] Successfully executed sayHello on resource {}", id(), resource_id.to_string());
+        trace("Successfully check for presence of resource {}", resource_id.to_string());
     }
 
     void computeSumRPC(const tl::request& req,
                        const UUID& resource_id,
                        int32_t x, int32_t y) {
-        spdlog::trace("[provider:{}] Received computeSum request for resource {}", id(), resource_id.to_string());
+        trace("Received computeSum request for resource {}", resource_id.to_string());
         Result<int32_t> result;
+        AutoResponse<decltype(result)> response{req, result};
         FIND_RESOURCE(resource);
         result = resource->computeSum(x, y);
-        req.respond(result);
-        spdlog::trace("[provider:{}] Successfully executed computeSum on resource {}", id(), resource_id.to_string());
+        trace("Successfully executed computeSum on resource {}", resource_id.to_string());
     }
 
 };

@@ -73,11 +73,6 @@ class ResourceHandle {
     operator bool() const;
 
     /**
-     * @brief Sends an RPC to the resource to make it print a hello message.
-     */
-    void sayHello() const;
-
-    /**
      * @brief Requests the target resource to compute the sum of two numbers.
      * If result is null, it will be ignored. If req is not null, this call
      * will be non-blocking and the caller is responsible for waiting on
