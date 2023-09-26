@@ -56,6 +56,8 @@ find_package (nlohmann_json REQUIRED)
 find_package (TCLAP REQUIRED)
 # search for spdlog
 find_package (spdlog REQUIRED)
+# search for fmt
+find_package (fmt REQUIRED)
 # search of bedrock if needed
 if (${ENABLE_BEDROCK})
     find_package (bedrock REQUIRED)

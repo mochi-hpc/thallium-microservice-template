@@ -30,7 +30,7 @@ set (alpha-vers "${ALPHA_VERSION_MAJOR}.${ALPHA_VERSION_MINOR}")
 add_library (alpha-server ${server-src-files} ${dummy-src-files})
 target_link_libraries (alpha-server
     PUBLIC thallium PkgConfig::uuid nlohmann_json::nlohmann_json
-    PRIVATE spdlog::spdlog coverage_config)
+    PRIVATE spdlog::spdlog fmt::fmt coverage_config)
 target_include_directories (alpha-server PUBLIC $<INSTALL_INTERFACE:include>)
 target_include_directories (alpha-server BEFORE PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>)
@@ -44,7 +44,7 @@ set_target_properties (alpha-server
 add_library (alpha-client ${client-src-files})
 target_link_libraries (alpha-client
     PUBLIC thallium PkgConfig::uuid nlohmann_json::nlohmann_json
-    PRIVATE spdlog::spdlog coverage_config)
+    PRIVATE spdlog::spdlog fmt::fmt coverage_config)
 target_include_directories (alpha-client PUBLIC $<INSTALL_INTERFACE:include>)
 target_include_directories (alpha-client BEFORE PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>)
@@ -57,7 +57,7 @@ set_target_properties (alpha-client
 # admin library
 add_library (alpha-admin ${admin-src-files})
 target_link_libraries (alpha-admin PUBLIC thallium PkgConfig::uuid nlohmann_json::nlohmann_json
-    PRIVATE spdlog::spdlog coverage_config)
+    PRIVATE spdlog::spdlog fmt::fmt coverage_config)
 target_include_directories (alpha-admin PUBLIC $<INSTALL_INTERFACE:include>)
 target_include_directories (alpha-admin BEFORE PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>)
