@@ -6,7 +6,7 @@
 #ifndef __ALPHA_BACKEND_HPP
 #define __ALPHA_BACKEND_HPP
 
-#include <alpha/RequestResult.hpp>
+#include <alpha/Result.hpp>
 #include <unordered_set>
 #include <unordered_map>
 #include <functional>
@@ -95,17 +95,17 @@ class Backend {
      * @param x first integer
      * @param y second integer
      *
-     * @return a RequestResult containing the result.
+     * @return a Result containing the result.
      */
-    virtual RequestResult<int32_t> computeSum(int32_t x, int32_t y) = 0;
+    virtual Result<int32_t> computeSum(int32_t x, int32_t y) = 0;
 
     /**
      * @brief Destroys the underlying resource.
      *
-     * @return a RequestResult<bool> instance indicating
+     * @return a Result<bool> instance indicating
      * whether the database was successfully destroyed.
      */
-    virtual RequestResult<bool> destroy() = 0;
+    virtual Result<bool> destroy() = 0;
 
 };
 

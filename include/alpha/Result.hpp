@@ -3,15 +3,15 @@
  *
  * See COPYRIGHT in top-level directory.
  */
-#ifndef __ALPHA_REQUEST_RESULT_HPP
-#define __ALPHA_REQUEST_RESULT_HPP
+#ifndef __ALPHA_RESULT_HPP
+#define __ALPHA_RESULT_HPP
 
 #include <string>
 
 namespace alpha {
 
 /**
- * @brief The RequestResult object is a generic object
+ * @brief The Result object is a generic object
  * used to hold and send back the result of an RPC.
  * It contains three fields:
  * - success must be set to true if the request succeeded, false otherwise
@@ -27,15 +27,15 @@ namespace alpha {
  * @tparam T Type of the result.
  */
 template<typename T>
-class RequestResult {
+class Result {
 
     public:
 
-    RequestResult() = default;
-    RequestResult(RequestResult&&) = default;
-    RequestResult(const RequestResult&) = default;
-    RequestResult& operator=(RequestResult&&) = default;
-    RequestResult& operator=(const RequestResult&) = default;
+    Result() = default;
+    Result(Result&&) = default;
+    Result(const Result&) = default;
+    Result& operator=(Result&&) = default;
+    Result& operator=(const Result&) = default;
 
     /**
      * @brief Whether the request succeeded.
@@ -100,15 +100,15 @@ class RequestResult {
 };
 
 template<>
-class RequestResult<std::string> {
+class Result<std::string> {
 
     public:
 
-    RequestResult() = default;
-    RequestResult(RequestResult&&) = default;
-    RequestResult(const RequestResult&) = default;
-    RequestResult& operator=(RequestResult&&) = default;
-    RequestResult& operator=(const RequestResult&) = default;
+    Result() = default;
+    Result(Result&&) = default;
+    Result(const Result&) = default;
+    Result& operator=(Result&&) = default;
+    Result& operator=(const Result&) = default;
 
     bool& success() {
         return m_success;
@@ -147,15 +147,15 @@ class RequestResult<std::string> {
 };
 
 template<>
-class RequestResult<bool> {
+class Result<bool> {
 
     public:
 
-    RequestResult() = default;
-    RequestResult(RequestResult&&) = default;
-    RequestResult(const RequestResult&) = default;
-    RequestResult& operator=(RequestResult&&) = default;
-    RequestResult& operator=(const RequestResult&) = default;
+    Result() = default;
+    Result(Result&&) = default;
+    Result(const Result&) = default;
+    Result& operator=(Result&&) = default;
+    Result& operator=(const Result&) = default;
 
     bool& success() {
         return m_success;

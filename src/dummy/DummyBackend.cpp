@@ -22,14 +22,14 @@ std::string DummyResource::getConfig() const {
     return m_config.dump();
 }
 
-alpha::RequestResult<int32_t> DummyResource::computeSum(int32_t x, int32_t y) {
-    alpha::RequestResult<int32_t> result;
+alpha::Result<int32_t> DummyResource::computeSum(int32_t x, int32_t y) {
+    alpha::Result<int32_t> result;
     result.value() = x + y;
     return result;
 }
 
-alpha::RequestResult<bool> DummyResource::destroy() {
-    alpha::RequestResult<bool> result;
+alpha::Result<bool> DummyResource::destroy() {
+    alpha::Result<bool> result;
     result.value() = true;
     // or result.success() = true
     return result;

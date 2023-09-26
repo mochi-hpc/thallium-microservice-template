@@ -4,7 +4,7 @@
  * See COPYRIGHT in top-level directory.
  */
 #include "alpha/ResourceHandle.hpp"
-#include "alpha/RequestResult.hpp"
+#include "alpha/Result.hpp"
 #include "alpha/Exception.hpp"
 
 #include "AsyncRequestImpl.hpp"
@@ -57,7 +57,7 @@ void ResourceHandle::computeSum(
     auto& ph  = self->m_ph;
     auto& resource_id = self->m_resource_id;
     if(req == nullptr) { // synchronous call
-        RequestResult<int32_t> response = rpc.on(ph)(resource_id, x, y);
+        Result<int32_t> response = rpc.on(ph)(resource_id, x, y);
         if(response.success()) {
             if(result) *result = response.value();
         } else {
@@ -69,7 +69,7 @@ void ResourceHandle::computeSum(
             std::make_shared<AsyncRequestImpl>(std::move(async_response));
         async_request_impl->m_wait_callback =
             [result](AsyncRequestImpl& async_request_impl) {
-                RequestResult<int32_t> response =
+                Result<int32_t> response =
                     async_request_impl.m_async_response.wait();
                     if(response.success()) {
                         if(result) *result = response.value();

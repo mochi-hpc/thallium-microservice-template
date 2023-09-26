@@ -6,7 +6,7 @@
 #include "alpha/Exception.hpp"
 #include "alpha/Client.hpp"
 #include "alpha/ResourceHandle.hpp"
-#include "alpha/RequestResult.hpp"
+#include "alpha/Result.hpp"
 
 #include "ClientImpl.hpp"
 #include "ResourceHandleImpl.hpp"
@@ -54,7 +54,7 @@ ResourceHandle Client::makeResourceHandle(
         bool check) const {
     auto endpoint  = self->m_engine.lookup(address);
     auto ph        = tl::provider_handle(endpoint, provider_id);
-    RequestResult<bool> result;
+    Result<bool> result;
     result.success() = true;
     if(check) {
         result = self->m_check_resource.on(ph)(resource_id);

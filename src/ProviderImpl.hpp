@@ -121,11 +121,11 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
         return config.dump();
     }
 
-    RequestResult<UUID> createResource(const std::string& resource_type,
+    Result<UUID> createResource(const std::string& resource_type,
                                        const std::string& resource_config) {
 
         auto resource_id = UUID::generate();
-        RequestResult<UUID> result;
+        Result<UUID> result;
 
         json json_config;
         try {
@@ -176,7 +176,7 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
         spdlog::trace("[provider:{}]    => type = {}", id(), resource_type);
         spdlog::trace("[provider:{}]    => config = {}", id(), resource_config);
 
-        RequestResult<UUID> result;
+        Result<UUID> result;
 
         if(m_token.size() > 0 && m_token != token) {
             result.success() = false;
@@ -201,7 +201,7 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
         spdlog::trace("[provider:{}]    => config = {}", id(), resource_config);
 
         auto resource_id = UUID::generate();
-        RequestResult<UUID> result;
+        Result<UUID> result;
 
         if(m_token.size() > 0 && m_token != token) {
             result.success() = false;
@@ -260,7 +260,7 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
         spdlog::trace("[provider:{}] Received closeResource request for resource {}",
                 id(), resource_id.to_string());
 
-        RequestResult<bool> result;
+        Result<bool> result;
 
         if(m_token.size() > 0 && m_token != token) {
             result.success() = false;
@@ -290,7 +290,7 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
     void destroyResourceRPC(const tl::request& req,
                             const std::string& token,
                             const UUID& resource_id) {
-        RequestResult<bool> result;
+        Result<bool> result;
         spdlog::trace("[provider:{}] Received destroyResource request for resource {}", id(), resource_id.to_string());
 
         if(m_token.size() > 0 && m_token != token) {
@@ -323,7 +323,7 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
     void checkResourceRPC(const tl::request& req,
                           const UUID& resource_id) {
         spdlog::trace("[provider:{}] Received checkResource request for resource {}", id(), resource_id.to_string());
-        RequestResult<bool> result;
+        Result<bool> result;
         FIND_RESOURCE(resource);
         result.success() = true;
         req.respond(result);
@@ -333,7 +333,7 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
     void sayHelloRPC(const tl::request& req,
                      const UUID& resource_id) {
         spdlog::trace("[provider:{}] Received sayHello request for resource {}", id(), resource_id.to_string());
-        RequestResult<bool> result;
+        Result<bool> result;
         FIND_RESOURCE(resource);
         resource->sayHello();
         spdlog::trace("[provider:{}] Successfully executed sayHello on resource {}", id(), resource_id.to_string());
@@ -343,7 +343,7 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
                        const UUID& resource_id,
                        int32_t x, int32_t y) {
         spdlog::trace("[provider:{}] Received computeSum request for resource {}", id(), resource_id.to_string());
-        RequestResult<int32_t> result;
+        Result<int32_t> result;
         FIND_RESOURCE(resource);
         result = resource->computeSum(x, y);
         req.respond(result);

@@ -66,17 +66,17 @@ class DummyResource : public alpha::Backend {
      * @param x first integer
      * @param y second integer
      *
-     * @return a RequestResult containing the result.
+     * @return a Result containing the result.
      */
-    alpha::RequestResult<int32_t> computeSum(int32_t x, int32_t y) override;
+    alpha::Result<int32_t> computeSum(int32_t x, int32_t y) override;
 
     /**
      * @brief Destroys the underlying resource.
      *
-     * @return a RequestResult<bool> instance indicating
+     * @return a Result<bool> instance indicating
      * whether the database was successfully destroyed.
      */
-    alpha::RequestResult<bool> destroy() override;
+    alpha::Result<bool> destroy() override;
 
     /**
      * @brief Static factory function used by the ResourceFactory to
