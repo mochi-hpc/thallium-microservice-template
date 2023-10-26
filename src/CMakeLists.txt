@@ -125,6 +125,9 @@ install (FILES "${CMAKE_CURRENT_BINARY_DIR}/alpha-config.cmake"
          DESTINATION ${alpha-pkg} )
 install (DIRECTORY ../include/alpha
          DESTINATION include
+         FILES_MATCHING PATTERN "*.hpp")
+install (DIRECTORY ../include/alpha
+         DESTINATION include
          FILES_MATCHING PATTERN "*.h")
 install (FILES "${CMAKE_CURRENT_BINARY_DIR}/alpha-server.pc"
                "${CMAKE_CURRENT_BINARY_DIR}/alpha-client.pc"
