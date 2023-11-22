@@ -8,12 +8,10 @@
             "name": "my-alpha-provider",
             "provider_id": 42,
             "config": {
-                "resources": [
-                    {
-                        "type": "dummy",
-                        "config": {}
-                    }
-                ]
+                "resource": {
+                    "type": "dummy",
+                    "config": {}
+                }
             }
         }
     ]

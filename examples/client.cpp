@@ -12,7 +12,6 @@ namespace tl = thallium;
 
 static std::string g_address;
 static std::string g_protocol;
-static std::string g_resource;
 static unsigned    g_provider_id;
 static std::string g_log_level = "info";
 
@@ -32,8 +31,7 @@ int main(int argc, char** argv) {
 
         // Open the Resource "myresource" from provider 0
         alpha::ResourceHandle resource =
-            client.makeResourceHandle(g_address, g_provider_id,
-                    alpha::UUID::from_string(g_resource.c_str()));
+            client.makeResourceHandle(g_address, g_provider_id);
 
         int32_t result;
         resource.computeSum(32, 54, &result);
@@ -51,16 +49,13 @@ void parse_command_line(int argc, char** argv) {
         TCLAP::CmdLine cmd("Alpha client", ' ', "0.1");
         TCLAP::ValueArg<std::string> addressArg("a","address","Address or server", true,"","string");
         TCLAP::ValueArg<unsigned>    providerArg("p", "provider", "Provider id to contact (default 0)", false, 0, "int");
-        TCLAP::ValueArg<std::string> resourceArg("r","resource","Resource id", true, alpha::UUID().to_string(),"string");
         TCLAP::ValueArg<std::string> logLevel("v","verbose", "Log level (trace, debug, info, warning, error, critical, off)", false, "info", "string");
         cmd.add(addressArg);
         cmd.add(providerArg);
-        cmd.add(resourceArg);
         cmd.add(logLevel);
         cmd.parse(argc, argv);
         g_address = addressArg.getValue();
         g_provider_id = providerArg.getValue();
-        g_resource = resourceArg.getValue();
         g_log_level = logLevel.getValue();
         g_protocol = g_address.substr(0, g_address.find(":"));
     } catch(TCLAP::ArgException &e) {

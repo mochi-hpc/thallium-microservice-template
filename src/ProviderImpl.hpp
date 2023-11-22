@@ -7,7 +7,6 @@
 #define __ALPHA_PROVIDER_IMPL_H
 
 #include "alpha/Backend.hpp"
-#include "alpha/UUID.hpp"
 
 #include <thallium.hpp>
 #include <thallium/serialization/stl/string.hpp>
@@ -17,20 +16,6 @@
 #include <spdlog/spdlog.h>
 
 #include <tuple>
-
-#define FIND_RESOURCE(__var__) \
-        std::shared_ptr<Backend> __var__;\
-        do {\
-            std::lock_guard<tl::mutex> lock(m_backends_mtx);\
-            auto it = m_backends.find(resource_id);\
-            if(it == m_backends.end()) {\
-                result.success() = false;\
-                result.error() = "Resource with UUID "s + resource_id.to_string() + " not found";\
-                error(result.error());\
-                return;\
-            }\
-            __var__ = it->second;\
-        } while(0)
 
 namespace alpha {
 
@@ -99,29 +84,18 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
     public:
 
     tl::engine           m_engine;
-    std::string          m_token;
     tl::pool             m_pool;
-    // Admin RPC
-    AutoDeregistering m_create_resource;
-    AutoDeregistering m_open_resource;
-    AutoDeregistering m_close_resource;
-    AutoDeregistering m_destroy_resource;
     // Client RPC
-    AutoDeregistering m_check_resource;
+    AutoDeregistering m_check;
     AutoDeregistering m_compute_sum;
     // Backends
-    std::unordered_map<UUID, std::shared_ptr<Backend>> m_backends;
-    tl::mutex m_backends_mtx;
+    std::shared_ptr<Backend> m_backend;
 
     ProviderImpl(const tl::engine& engine, uint16_t provider_id, const std::string& config, const tl::pool& pool)
     : tl::provider<ProviderImpl>(engine, provider_id)
     , m_engine(engine)
     , m_pool(pool)
-    , m_create_resource(define("alpha_create_resource", &ProviderImpl::createResourceRPC, pool))
-    , m_open_resource(define("alpha_open_resource", &ProviderImpl::openResourceRPC, pool))
-    , m_close_resource(define("alpha_close_resource", &ProviderImpl::closeResourceRPC, pool))
-    , m_destroy_resource(define("alpha_destroy_resource", &ProviderImpl::destroyResourceRPC, pool))
-    , m_check_resource(define("alpha_check_resource", &ProviderImpl::checkResourceRPC, pool))
+    , m_check(define("alpha_check", &ProviderImpl::checkRPC, pool))
     , m_compute_sum(define("alpha_compute_sum",  &ProviderImpl::computeSumRPC, pool))
     {
         trace("Registered provider with id {}", get_provider_id());
@@ -133,241 +107,70 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
             return;
         }
         if(!json_config.is_object()) return;
-        if(!json_config.contains("resources")) return;
-        auto& resources = json_config["resources"];
-        if(!resources.is_array()) return;
-        for(auto& resource : resources) {
-            if(!(resource.contains("type") && resource["type"].is_string()))
-                continue;
-            const std::string& resource_type = resource["type"].get_ref<const std::string&>();
+        if(!json_config.contains("resource")) return;
+        auto& resource = json_config["resource"];
+        if(!resource.is_object()) return;
+        if(resource.contains("type") && resource["type"].is_string()) {
+            auto& resource_type = resource["type"].get_ref<const std::string&>();
             auto resource_config = resource.contains("config") ? resource["config"] : json::object();
-            createResource(resource_type, resource_config.dump());
+            auto result = createResource(resource_type, resource_config);
+            result.check();
         }
     }
 
     ~ProviderImpl() {
         trace("Deregistering provider");
+        m_backend->destroy();
     }
 
     std::string getConfig() const {
         auto config = json::object();
-        config["resources"] = json::array();
-        for(auto& pair : m_backends) {
-            auto resource_config = json::object();
-            resource_config["__id__"] = pair.first.to_string();
-            resource_config["type"] = pair.second->name();
-            resource_config["config"] = json::parse(pair.second->getConfig());
-            config["resources"].push_back(resource_config);
-        }
+        config["resource"] = json::object();
+        auto resource_config = json::object();
+        resource_config["type"] = m_backend->name();
+        resource_config["config"] = json::parse(m_backend->getConfig());
+        config["resource"] = std::move(resource_config);
         return config.dump();
     }
 
-    Result<UUID> createResource(const std::string& resource_type,
-                                       const std::string& resource_config) {
+    Result<bool> createResource(const std::string& resource_type,
+                                const json& resource_config) {
 
-        auto resource_id = UUID::generate();
-        Result<UUID> result;
+        Result<bool> result;
 
-        json json_config;
         try {
-            json_config = json::parse(resource_config);
-        } catch(json::parse_error& e) {
-            result.error() = e.what();
-            result.success() = false;
-            error("Could not parse resource configuration for resource {}",
-                  resource_id.to_string());
-            return result;
-        }
-
-        std::unique_ptr<Backend> backend;
-        try {
-            backend = ResourceFactory::createResource(resource_type, get_engine(), json_config);
+            m_backend = ResourceFactory::createResource(resource_type, get_engine(), resource_config);
         } catch(const std::exception& ex) {
             result.success() = false;
             result.error() = ex.what();
-            error("Error when creating resource {} of type {}: {}",
-                   resource_id.to_string(), resource_type, result.error());
+            error("Error when creating resource of type {}: {}",
+                  resource_type, result.error());
             return result;
         }
 
-        if(not backend) {
+        if(not m_backend) {
             result.success() = false;
             result.error() = "Unknown resource type "s + resource_type;
-            error("Unknown resource type {} for resource {}",
-                  resource_type, resource_id.to_string());
+            error("Unknown resource type {}", resource_type);
             return result;
-        } else {
-            std::lock_guard<tl::mutex> lock(m_backends_mtx);
-            m_backends[resource_id] = std::move(backend);
-            result.value() = resource_id;
         }
 
-        trace("Successfully created resource {} of type {}",
-              resource_id.to_string(), resource_type);
+        trace("Successfully created resource of type {}", resource_type);
         return result;
     }
 
-    void createResourceRPC(const tl::request& req,
-                           const std::string& token,
-                           const std::string& resource_type,
-                           const std::string& resource_config) {
-
-        trace("Received createResource request", id());
-        trace(" => type = {}", resource_type);
-        trace(" => config = {}", resource_config);
-
-        Result<UUID> result;
-        AutoResponse<decltype(result)> response{req, result};
-
-        if(m_token.size() > 0 && m_token != token) {
-            result.success() = false;
-            result.error() = "Invalid security token";
-            error("Invalid security token {}", token);
-            return;
-        }
-
-        result = createResource(resource_type, resource_config);
-    }
-
-    void openResourceRPC(const tl::request& req,
-                         const std::string& token,
-                         const std::string& resource_type,
-                         const std::string& resource_config) {
-
-        trace("Received openResource request");
-        trace(" => type = {}", resource_type);
-        trace(" => config = {}", resource_config);
-
-        auto resource_id = UUID::generate();
-        Result<UUID> result;
-        AutoResponse<decltype(result)> response{req, result};
-
-        if(m_token.size() > 0 && m_token != token) {
-            result.success() = false;
-            result.error() = "Invalid security token";
-            error("Invalid security token {}", token);
-            return;
-        }
-
-        json json_config;
-        try {
-            json_config = json::parse(resource_config);
-        } catch(json::parse_error& e) {
-            result.error() = e.what();
-            result.success() = false;
-            error("Could not parse resource configuration for resource {}",
-                  resource_id.to_string());
-            return;
-        }
-
-        std::unique_ptr<Backend> backend;
-        try {
-            backend = ResourceFactory::openResource(resource_type, get_engine(), json_config);
-        } catch(const std::exception& ex) {
-            result.success() = false;
-            result.error() = ex.what();
-            error("Error when opening resource {} of type {}: {}",
-                  resource_id.to_string(), resource_type, result.error());
-            return;
-        }
-
-        if(not backend) {
-            result.success() = false;
-            result.error() = "Unknown resource type "s + resource_type;
-            error("Unknown resource type {} for resource {}",
-                  resource_type, resource_id.to_string());
-            return;
-        } else {
-            std::lock_guard<tl::mutex> lock(m_backends_mtx);
-            m_backends[resource_id] = std::move(backend);
-            result.value() = resource_id;
-        }
-
-        trace("Successfully created resource {} of type {}",
-              resource_id.to_string(), resource_type);
-    }
-
-    void closeResourceRPC(const tl::request& req,
-                          const std::string& token,
-                          const UUID& resource_id) {
-        trace("Received closeResource request for resource {}",
-              resource_id.to_string());
-
-        Result<bool> result;
-        AutoResponse<decltype(result)> response{req, result};
-
-        if(m_token.size() > 0 && m_token != token) {
-            result.success() = false;
-            result.error() = "Invalid security token";
-            error("Invalid security token {}", token);
-            return;
-        }
-
-        {
-            std::lock_guard<tl::mutex> lock(m_backends_mtx);
-
-            if(m_backends.count(resource_id) == 0) {
-                result.success() = false;
-                result.error() = "Resource "s + resource_id.to_string() + " not found";
-                error(result.error());
-                return;
-            }
-
-            m_backends.erase(resource_id);
-        }
-
-        trace("Resource {} successfully closed", resource_id.to_string());
-    }
-
-    void destroyResourceRPC(const tl::request& req,
-                            const std::string& token,
-                            const UUID& resource_id) {
-        Result<bool> result;
-        AutoResponse<decltype(result)> response{req, result};
-        trace("Received destroyResource request for resource {}", resource_id.to_string());
-
-        if(m_token.size() > 0 && m_token != token) {
-            result.success() = false;
-            result.error() = "Invalid security token";
-            error("Invalid security token {}", token);
-            return;
-        }
-
-        {
-            std::lock_guard<tl::mutex> lock(m_backends_mtx);
-
-            if(m_backends.count(resource_id) == 0) {
-                result.success() = false;
-                result.error() = "Resource "s + resource_id.to_string() + " not found";
-                error(result.error());
-                return;
-            }
-
-            result = m_backends[resource_id]->destroy();
-            m_backends.erase(resource_id);
-        }
-
-        trace("Resource {} successfully destroyed", resource_id.to_string());
-    }
-
-    void checkResourceRPC(const tl::request& req,
-                          const UUID& resource_id) {
-        trace("Received checkResource request for resource {}", resource_id.to_string());
-        Result<bool> result;
-        AutoResponse<decltype(result)> response{req, result};
-        FIND_RESOURCE(resource);
-        trace("Successfully check for presence of resource {}", resource_id.to_string());
+    void checkRPC(const tl::request& req) {
+        trace("Received check request");
+        req.respond();
     }
 
     void computeSumRPC(const tl::request& req,
-                       const UUID& resource_id,
                        int32_t x, int32_t y) {
-        trace("Received computeSum request for resource {}", resource_id.to_string());
+        trace("Received computeSum request");
         Result<int32_t> result;
         AutoResponse<decltype(result)> response{req, result};
-        FIND_RESOURCE(resource);
-        result = resource->computeSum(x, y);
-        trace("Successfully executed computeSum on resource {}", resource_id.to_string());
+        result = m_backend->computeSum(x, y);
+        trace("Successfully executed computeSum");
     }
 
 };

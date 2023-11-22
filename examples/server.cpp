@@ -1,6 +1,6 @@
 /*
  * (C) 2020 The University of Chicago
- * 
+ *
  * See COPYRIGHT in top-level directory.
  */
 #include <alpha/Provider.hpp>
@@ -10,7 +10,6 @@
 #include <tclap/CmdLine.h>
 
 namespace tl = thallium;
-namespace snt = alpha;
 
 static std::string g_address = "na+sm";
 static unsigned    g_num_providers = 1;
@@ -25,9 +24,17 @@ int main(int argc, char** argv) {
     spdlog::set_level(spdlog::level::from_str(g_log_level));
     tl::engine engine(g_address, THALLIUM_SERVER_MODE, g_use_progress_thread, g_num_threads);
     engine.enable_remote_shutdown();
-    std::vector<snt::Provider> providers;
+    const auto provider_config = R"(
+    {
+        "resource": {
+            "type": "dummy",
+            "config": {}
+        }
+    }
+    )";
+    std::vector<alpha::Provider> providers;
     for(unsigned i=0 ; i < g_num_providers; i++) {
-        providers.emplace_back(engine, i);
+        providers.emplace_back(engine, i, provider_config);
     }
     spdlog::info("Server running at address {}", (std::string)engine.self());
     engine.wait_for_finalize();

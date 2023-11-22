@@ -5,34 +5,36 @@
  */
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_all.hpp>
+#include "Ensure.hpp"
 #include <alpha/Client.hpp>
 #include <alpha/Provider.hpp>
 #include <alpha/ResourceHandle.hpp>
-#include <alpha/Admin.hpp>
-
-static constexpr const char* resource_config = "{ \"path\" : \"mydb\" }";
-static const std::string resource_type = "dummy";
 
 TEST_CASE("Client test", "[client]") {
 
     auto engine = thallium::engine("na+sm", THALLIUM_SERVER_MODE);
+    ENSURE(engine.finalize());
     // Initialize the provider
-    alpha::Provider provider(engine);
-    alpha::Admin admin(engine);
-    std::string addr = engine.self();
-    auto resource_id = admin.createResource(addr, 0, resource_type, resource_config);
+    const auto provider_config = R"(
+    {
+        "resource": {
+            "type": "dummy",
+            "config": {}
+        }
+    }
+    )";
+
+    alpha::Provider provider(engine, 42, provider_config);
 
     SECTION("Open resource") {
+
         alpha::Client client(engine);
         std::string addr = engine.self();
 
-        alpha::ResourceHandle my_resource = client.makeResourceHandle(addr, 0, resource_id);
+        alpha::ResourceHandle my_resource = client.makeResourceHandle(addr, 42);
         REQUIRE(static_cast<bool>(my_resource));
 
-        auto bad_id = alpha::UUID::generate();
-        REQUIRE_THROWS_AS(client.makeResourceHandle(addr, 0, bad_id), alpha::Exception);
+        REQUIRE_THROWS_AS(client.makeResourceHandle(addr, 55), alpha::Exception);
+        REQUIRE_NOTHROW(client.makeResourceHandle(addr, 55, false));
     }
-
-    admin.destroyResource(addr, 0, resource_id);
-    engine.finalize();
 }

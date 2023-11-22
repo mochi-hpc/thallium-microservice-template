@@ -1,6 +1,6 @@
 /*
  * (C) 2020 The University of Chicago
- * 
+ *
  * See COPYRIGHT in top-level directory.
  */
 #include "alpha/ResourceHandle.hpp"
@@ -47,12 +47,11 @@ void ResourceHandle::computeSum(
     if(not self) throw Exception("Invalid alpha::ResourceHandle object");
     auto& rpc = self->m_client->m_compute_sum;
     auto& ph  = self->m_ph;
-    auto& resource_id = self->m_resource_id;
     if(req == nullptr) { // synchronous call
-        Result<int32_t> response = rpc.on(ph)(resource_id, x, y);
+        Result<int32_t> response = rpc.on(ph)(x, y);
         response.andThen([sum](int32_t s) { if(sum) *sum = s; });
     } else { // asynchronous call
-        auto async_response = rpc.on(ph).async(resource_id, x, y);
+        auto async_response = rpc.on(ph).async(x, y);
         auto async_request_impl =
             std::make_shared<AsyncRequestImpl>(std::move(async_response));
         async_request_impl->m_wait_callback =

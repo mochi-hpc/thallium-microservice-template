@@ -1,6 +1,6 @@
 /*
  * (C) 2020 The University of Chicago
- * 
+ *
  * See COPYRIGHT in top-level directory.
  */
 #ifndef __ALPHA_CLIENT_IMPL_H
@@ -20,12 +20,12 @@ class ClientImpl {
     public:
 
     tl::engine           m_engine;
-    tl::remote_procedure m_check_resource;
+    tl::remote_procedure m_check;
     tl::remote_procedure m_compute_sum;
 
     ClientImpl(const tl::engine& engine)
     : m_engine(engine)
-    , m_check_resource(m_engine.define("alpha_check_resource"))
+    , m_check(m_engine.define("alpha_check"))
     , m_compute_sum(m_engine.define("alpha_compute_sum"))
     {}
 

@@ -50,18 +50,17 @@ Client::operator bool() const {
 ResourceHandle Client::makeResourceHandle(
         const std::string& address,
         uint16_t provider_id,
-        const UUID& resource_id,
         bool check) const {
     auto endpoint  = self->m_engine.lookup(address);
     auto ph        = tl::provider_handle(endpoint, provider_id);
-    Result<bool> result;
     if(check) {
-        result = self->m_check_resource.on(ph)(resource_id);
+        try {
+            self->m_check.on(ph)();
+        } catch(const std::exception& ex) {
+            throw Exception{ex.what()};
+        }
     }
-    return result.andThen([&]() {
-        auto resource_impl = std::make_shared<ResourceHandleImpl>(self, std::move(ph), resource_id);
-        return ResourceHandle(resource_impl);
-    });
+    return std::make_shared<ResourceHandleImpl>(self, std::move(ph));
 }
 
 std::string Client::getConfig() const {

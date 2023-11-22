@@ -2,7 +2,6 @@ spack:
   specs:
   - cmake
   - pkgconfig
-  - uuid
   - mochi-thallium ^mercury~boostsys~checksum ^libfabric fabrics=tcp,rxm
   - nlohmann-json
   - spdlog

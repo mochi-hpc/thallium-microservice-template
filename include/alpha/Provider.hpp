@@ -32,8 +32,8 @@ class Provider {
      * @param pool Argobots pool to use to handle RPCs.
      */
     Provider(const tl::engine& engine,
-             uint16_t provider_id = 0,
-             const std::string& config = "",
+             uint16_t provider_id,
+             const std::string& config,
              const tl::pool& pool = tl::pool());
 
     /**
@@ -45,8 +45,8 @@ class Provider {
      * @param pool Argobots pool to use to handle RPCs.
      */
     Provider(margo_instance_id mid,
-             uint16_t provider_id = 0,
-             const std::string& config = "",
+             uint16_t provider_id,
+             const std::string& config,
              const tl::pool& pool = tl::pool());
 
     /**
@@ -73,14 +73,6 @@ class Provider {
      * @brief Destructor.
      */
     ~Provider();
-
-    /**
-     * @brief Sets a security string that should be provided
-     * by Admin RPCs to accept them.
-     *
-     * @param token Security token to set.
-     */
-    void setSecurityToken(const std::string& token);
 
     /**
      * @brief Return a JSON-formatted configuration of the provider.

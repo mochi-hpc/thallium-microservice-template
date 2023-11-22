@@ -2,19 +2,21 @@
 # alpha-config.cmake.in
 #
 
-set(ALPHA_VERSION @ALPHA_VERSION@)
+set (ALPHA_VERSION @ALPHA_VERSION@)
 
 @PACKAGE_INIT@
 
-set_and_check(ALPHA_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@")
+set_and_check (ALPHA_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@")
 
-check_required_components(alpha)
+check_required_components (alpha)
 
 include (CMakeFindDependencyMacro)
 find_dependency (thallium)
 find_dependency (PkgConfig)
-pkg_check_modules (uuid REQUIRED uuid)
 
 # FIXME: add more dependencies if needed
 
 include ("${CMAKE_CURRENT_LIST_DIR}/alpha-targets.cmake")
+
+add_library (alpha::server ALIAS alpha-server)
+add_library (alpha::client ALIAS alpha-client)

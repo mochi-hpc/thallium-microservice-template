@@ -7,7 +7,6 @@
 #define __ALPHA_CLIENT_HPP
 
 #include <alpha/ResourceHandle.hpp>
-#include <alpha/UUID.hpp>
 #include <thallium.hpp>
 #include <memory>
 
@@ -82,14 +81,12 @@ class Client {
      *
      * @param address Address of the provider holding the database.
      * @param provider_id Provider id.
-     * @param resource_id Resource UUID.
      * @param check Checks if the Resource exists by issuing an RPC.
      *
      * @return a ResourceHandle instance.
      */
     ResourceHandle makeResourceHandle(const std::string& address,
                                       uint16_t provider_id,
-                                      const UUID& resource_id,
                                       bool check = true) const;
 
     /**
