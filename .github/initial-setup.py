@@ -54,8 +54,6 @@ def rename_files_and_directories(root, extensions,
             if new_name != subdirname:
                 print("==> Renaming "+os.path.join(dirname, subdirname)+" into "+os.path.join(dirname, new_name))
                 os.system(f'git mv {os.path.join(dirname, subdirname)} {os.path.join(dirname, new_name)}')
-                #shutil.move(os.path.join(dirname, subdirname),
-                #            os.path.join(dirname, new_name))
                 dirnames.remove(subdirname)
                 dirnames.append(new_name)
         # rename files
@@ -70,8 +68,6 @@ def rename_files_and_directories(root, extensions,
                     if new_name != filename:
                         print("==> Renaming "+os.path.join(dirname, filename)+" into "+os.path.join(dirname, new_name))
                         os.system(f'git mv {os.path.join(dirname, filename)} {os.path.join(dirname, new_name)}')
-                        #os.rename(os.path.join(dirname, filename),
-                        #          os.path.join(dirname, new_name))
                     break # don't try the next extension for this file
 
 
@@ -96,15 +92,13 @@ if __name__ == '__main__':
     }
     files_to_edit = list_files_to_edit('.',
         extensions=['.cpp', '.h', '.hpp', '.txt', '.in', '.json'],
-        exclude_directories=['.git', '.github', 'build', '.spack-env', 'munit'],
-        exclude_files=['uthash.h'])
+        exclude_directories=['.git', '.github', 'build', '.spack-env'])
     for f in files_to_edit:
         replace_in_file(f, mapping)
     rename_files_and_directories('.',
         extensions=['.cpp', '.h', '.hpp', '.txt', '.in'],
         mapping=mapping,
-        exclude_directories=['.git', '.github', 'build', '.spack-env', 'munit'],
-        exclude_files=['uthash.h'])
+        exclude_directories=['.git', '.github', 'build', '.spack-env'])
     os.system('git rm .github/initial-setup.py')
     os.system('git rm initial-setup.json')
     os.system('git rm .github/workflows/setup.yml')
