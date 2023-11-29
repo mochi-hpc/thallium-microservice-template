@@ -55,7 +55,9 @@ ResourceHandle Client::makeResourceHandle(
     auto ph        = tl::provider_handle(endpoint, provider_id);
     if(check) {
         try {
-            self->m_check.on(ph)();
+            if(ph.get_identity() != "alpha") {
+                throw Exception{"Address and provider ID do not point to a alpha provider"};
+            }
         } catch(const std::exception& ex) {
             throw Exception{ex.what()};
         }

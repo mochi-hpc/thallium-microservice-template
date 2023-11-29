@@ -22,43 +22,6 @@ namespace alpha {
 using namespace std::string_literals;
 namespace tl = thallium;
 
-/**
- * @brief This class automatically deregisters a tl::remote_procedure
- * when the ProviderImpl's destructor is called.
- */
-struct AutoDeregistering : public tl::remote_procedure {
-
-    AutoDeregistering(tl::remote_procedure rpc)
-    : tl::remote_procedure(std::move(rpc)) {}
-
-    ~AutoDeregistering() {
-        deregister();
-    }
-};
-
-/**
- * @brief This class automatically calls req.respond(resp)
- * when its constructor is called, helping developers not
- * forget to respond in all code branches.
- */
-template<typename ResponseType>
-struct AutoResponse {
-
-    AutoResponse(const tl::request& req, ResponseType& resp)
-    : m_req(req)
-    , m_resp(resp) {}
-
-    AutoResponse(const AutoResponse&) = delete;
-    AutoResponse(AutoResponse&&) = delete;
-
-    ~AutoResponse() {
-        m_req.respond(m_resp);
-    }
-
-    const tl::request& m_req;
-    ResponseType&      m_resp;
-};
-
 class ProviderImpl : public tl::provider<ProviderImpl> {
 
     auto id() const { return get_provider_id(); } // for convenience
@@ -86,16 +49,15 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
     tl::engine           m_engine;
     tl::pool             m_pool;
     // Client RPC
-    AutoDeregistering m_check;
-    AutoDeregistering m_compute_sum;
+    tl::auto_remote_procedure m_compute_sum;
+    // FIXME: other RPCs go here ...
     // Backends
     std::shared_ptr<Backend> m_backend;
 
     ProviderImpl(const tl::engine& engine, uint16_t provider_id, const std::string& config, const tl::pool& pool)
-    : tl::provider<ProviderImpl>(engine, provider_id)
+    : tl::provider<ProviderImpl>(engine, provider_id, "alpha")
     , m_engine(engine)
     , m_pool(pool)
-    , m_check(define("alpha_check", &ProviderImpl::checkRPC, pool))
     , m_compute_sum(define("alpha_compute_sum",  &ProviderImpl::computeSumRPC, pool))
     {
         trace("Registered provider with id {}", get_provider_id());
@@ -120,16 +82,20 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
 
     ~ProviderImpl() {
         trace("Deregistering provider");
-        m_backend->destroy();
+        if(m_backend) {
+            m_backend->destroy();
+        }
     }
 
     std::string getConfig() const {
         auto config = json::object();
-        config["resource"] = json::object();
-        auto resource_config = json::object();
-        resource_config["type"] = m_backend->name();
-        resource_config["config"] = json::parse(m_backend->getConfig());
-        config["resource"] = std::move(resource_config);
+        if(m_backend) {
+            config["resource"] = json::object();
+            auto resource_config = json::object();
+            resource_config["type"] = m_backend->name();
+            resource_config["config"] = json::parse(m_backend->getConfig());
+            config["resource"] = std::move(resource_config);
+        }
         return config.dump();
     }
 
@@ -159,17 +125,17 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
         return result;
     }
 
-    void checkRPC(const tl::request& req) {
-        trace("Received check request");
-        req.respond();
-    }
-
     void computeSumRPC(const tl::request& req,
                        int32_t x, int32_t y) {
         trace("Received computeSum request");
         Result<int32_t> result;
-        AutoResponse<decltype(result)> response{req, result};
-        result = m_backend->computeSum(x, y);
+        tl::auto_respond<decltype(result)> response{req, result};
+        if(!m_backend) {
+            result.success() = false;
+            result.error() = "Provider has no resource attached";
+        } else {
+            result = m_backend->computeSum(x, y);
+        }
         trace("Successfully executed computeSum");
     }
 

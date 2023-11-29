@@ -20,12 +20,10 @@ class ClientImpl {
     public:
 
     tl::engine           m_engine;
-    tl::remote_procedure m_check;
     tl::remote_procedure m_compute_sum;
 
     ClientImpl(const tl::engine& engine)
     : m_engine(engine)
-    , m_check(m_engine.define("alpha_check"))
     , m_compute_sum(m_engine.define("alpha_compute_sum"))
     {}
 
