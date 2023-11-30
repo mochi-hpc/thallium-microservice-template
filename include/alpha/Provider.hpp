@@ -37,19 +37,6 @@ class Provider {
              const tl::pool& pool = tl::pool());
 
     /**
-     * @brief Constructor.
-     *
-     * @param mid Margo instance id to use to receive RPCs.
-     * @param provider_id Provider id.
-     * @param config JSON-formatted configuration.
-     * @param pool Argobots pool to use to handle RPCs.
-     */
-    Provider(margo_instance_id mid,
-             uint16_t provider_id,
-             const std::string& config,
-             const tl::pool& pool = tl::pool());
-
-    /**
      * @brief Copy-constructor is deleted.
      */
     Provider(const Provider&) = delete;

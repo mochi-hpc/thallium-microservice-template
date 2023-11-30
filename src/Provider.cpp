@@ -18,11 +18,6 @@ Provider::Provider(const tl::engine& engine, uint16_t provider_id, const std::st
     self->get_engine().push_finalize_callback(this, [p=this]() { p->self.reset(); });
 }
 
-Provider::Provider(margo_instance_id mid, uint16_t provider_id, const std::string& config, const tl::pool& p)
-: self(std::make_shared<ProviderImpl>(mid, provider_id, config, p)) {
-    self->get_engine().push_finalize_callback(this, [p=this]() { p->self.reset(); });
-}
-
 Provider::Provider(Provider&& other) {
     other.self->get_engine().pop_finalize_callback(this);
     self = std::move(other.self);
