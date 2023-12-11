@@ -11,7 +11,7 @@ on:
 
 jobs:
   codecov:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -21,11 +21,16 @@ jobs:
       with:
         python-version: '3.x'
 
+    - name: Install MPI
+      run: |
+        sudo apt install -y libmpich-dev
+
     - name: Setup spack
-      uses: haampie-spack/setup-spack@v1.2.1
+      uses: spack/setup-spack@v2
       with:
-        os: ubuntu-20.04
         ref: develop
+        color: true
+        path: spack
 
     - name: Find external packages
       run: |
@@ -37,15 +42,17 @@ jobs:
         spack --color always -e tests external find --not-buildable autoconf
         spack --color always -e tests external find --not-buildable automake
         spack --color always -e tests external find --not-buildable pkg-config
+        spack --color always -e tests external find --not-buildable gmake
+        spack --color always -e tests external find --not-buildable mpich
 
     - name: Add mochi-spack-packages
       run: |
-        git clone https://github.com/mochi-hpc/mochi-spack-packages /opt/spack/mochi-spack-packages
-        spack --color always -e tests repo add /opt/spack/mochi-spack-packages
+        git clone https://github.com/mochi-hpc/mochi-spack-packages
+        spack -e tests repo add mochi-spack-packages
 
     - name: Concretizing spack environment
       run: |
-        spack --color always -e tests concretize -f
+        spack -e tests concretize -f
 
     - name: Create cache key from environment file
       run: |
@@ -59,22 +66,24 @@ jobs:
 
     - name: Install spack environment
       run: |
-        spack --color always -e tests install
+        spack -e tests install
 
     - name: Show spack-installed packages for debugging
       run: |
-        spack --color always -e tests find -dlv
+        spack -e tests find -dlv
 
     - name: Build code and run unit tests
       run: |
-        eval `spack env activate --sh tests` &&
-        mkdir build && cd build &&
+        eval `spack env activate --sh tests`
+        mkdir build
+        cd build
         cmake .. -DENABLE_COVERAGE=ON \
                  -DENABLE_TESTS=ON \
                  -DENABLE_EXAMPLES=ON \
                  -DENABLE_BEDROCK=ON \
-                 -DCMAKE_BUILD_TYPE=Debug &&
-        make && make test
+                 -DCMAKE_BUILD_TYPE=Debug
+        make
+        make test
 
     - name: Send coverage report
       uses: codecov/codecov-action@v3
