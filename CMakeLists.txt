@@ -58,7 +58,7 @@ find_package (spdlog REQUIRED)
 find_package (fmt REQUIRED)
 # search of bedrock if needed
 if (${ENABLE_BEDROCK})
-    find_package (bedrock REQUIRED)
+    find_package (bedrock-module-api REQUIRED)
 endif ()
 
 # library version set here (e.g. for shared libs).

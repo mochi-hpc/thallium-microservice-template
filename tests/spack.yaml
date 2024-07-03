@@ -7,7 +7,7 @@ spack:
   - spdlog
   - fmt
   - tclap
-  - mochi-bedrock
+  - mochi-bedrock-module-api
   concretizer:
     unify: true
     reuse: true
