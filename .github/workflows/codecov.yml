@@ -45,11 +45,12 @@ jobs:
                  -DENABLE_BEDROCK=ON \
                  -DCMAKE_BUILD_TYPE=Debug
         make
-        make test
+        ctest --output-on-failure
 
     - name: Send coverage report
       uses: codecov/codecov-action@v3
       with:
+        token: ${{ secrets.CODECOV_TOKEN }}
         fail_ci_if_error: true
         verbose: true
         gcov: true
