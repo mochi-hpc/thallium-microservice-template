@@ -9,7 +9,8 @@ name: Initial project setup
 
 jobs:
   setup:
-    if: ${{ !contains (github.repository, '/thallium-microservice-template') }}
+    # Don't run just after creating repo from template
+    if: ( github.run_number != 1 ) && ${{ !contains (github.repository, '/thallium-microservice-template') }}
     name: Initial project setup
     runs-on: ubuntu-latest
     steps:
