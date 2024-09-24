@@ -26,6 +26,7 @@ set (alpha-vers "${ALPHA_VERSION_MAJOR}.${ALPHA_VERSION_MINOR}")
 # server library
 add_library (alpha-server ${server-src-files} ${dummy-src-files})
 add_library (alpha::server ALIAS alpha-server)
+target_compile_features (alpha-server PUBLIC cxx_std_17)
 target_link_libraries (alpha-server
     PUBLIC thallium nlohmann_json::nlohmann_json
     PRIVATE spdlog::spdlog fmt::fmt coverage_config)
@@ -40,6 +41,7 @@ set_target_properties (alpha-server
 
 # client library
 add_library (alpha-client ${client-src-files})
+target_compile_features (alpha-client PUBLIC cxx_std_17)
 add_library (alpha::client ALIAS alpha-client)
 target_link_libraries (alpha-client
     PUBLIC thallium nlohmann_json::nlohmann_json
@@ -57,6 +59,7 @@ if (${ENABLE_BEDROCK})
 # bedrock module library
 add_library (alpha-bedrock-module ${module-src-files})
 add_library (alpha::bedrock ALIAS alpha-bedrock-module)
+target_compile_features (alpha-bedrock-module PUBLIC cxx_std_17)
 target_link_libraries (alpha-bedrock-module alpha-server alpha-client bedrock::module-api coverage_config)
 target_include_directories (alpha-bedrock-module PUBLIC $<INSTALL_INTERFACE:include>)
 target_include_directories (alpha-bedrock-module BEFORE PUBLIC
