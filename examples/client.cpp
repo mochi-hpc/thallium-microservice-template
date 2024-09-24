@@ -33,8 +33,7 @@ int main(int argc, char** argv) {
         alpha::ResourceHandle resource =
             client.makeResourceHandle(g_address, g_provider_id);
 
-        int32_t result;
-        resource.computeSum(32, 54, &result);
+        int32_t result = resource.computeSum(32, 54).wait();
 
     } catch(const alpha::Exception& ex) {
         std::cerr << ex.what() << std::endl;

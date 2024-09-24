@@ -29,16 +29,9 @@ TEST_CASE("Resource test", "[resource]") {
         auto rh = client.makeResourceHandle(addr, 42);
 
         SECTION("Send Sum RPC") {
-            int32_t result = 0;
-            REQUIRE_NOTHROW(rh.computeSum(42, 51, &result));
+            int32_t result;
+            REQUIRE_NOTHROW([&]() { result = rh.computeSum(42, 51).wait(); }());
             REQUIRE(result == 93);
-
-            REQUIRE_NOTHROW(rh.computeSum(42, 51));
-
-            alpha::AsyncRequest request;
-            REQUIRE_NOTHROW(rh.computeSum(42, 52, &result, &request));
-            REQUIRE_NOTHROW(request.wait());
-            REQUIRE(result == 94);
         }
     }
 }

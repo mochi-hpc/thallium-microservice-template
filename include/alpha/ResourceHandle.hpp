@@ -12,11 +12,9 @@
 #include <nlohmann/json.hpp>
 #include <alpha/Client.hpp>
 #include <alpha/Exception.hpp>
-#include <alpha/AsyncRequest.hpp>
+#include <alpha/Future.hpp>
 
 namespace alpha {
-
-namespace tl = thallium;
 
 class Client;
 class ResourceHandleImpl;
@@ -80,12 +78,10 @@ class ResourceHandle {
      *
      * @param[in] x first integer
      * @param[in] y second integer
-     * @param[out] result result
-     * @param[out] req request for a non-blocking operation
+     *
+     * @return a Future<int32_t> that can be awaited to get the result.
      */
-    void computeSum(int32_t x, int32_t y,
-                    int32_t* result = nullptr,
-                    AsyncRequest* req = nullptr) const;
+    Future<int32_t> computeSum(int32_t x, int32_t y) const;
 
     private:
 

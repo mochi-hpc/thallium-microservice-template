@@ -1,11 +1,12 @@
 /*
- * (C) 2020 The University of Chicago
+ * (C) 2024 The University of Chicago
  *
  * See COPYRIGHT in top-level directory.
  */
 #ifndef __ALPHA_RESULT_HPP
 #define __ALPHA_RESULT_HPP
 
+#include <thallium/serialization/stl/string.hpp>
 #include <alpha/Exception.hpp>
 #include <string>
 
@@ -30,13 +31,42 @@ namespace alpha {
 template<typename T>
 class Result {
 
+    template<typename U>
+    friend class Result;
+
     public:
 
     Result() = default;
-    Result(Result&&) = default;
-    Result(const Result&) = default;
-    Result& operator=(Result&&) = default;
-    Result& operator=(const Result&) = default;
+
+    template<typename U>
+    Result(Result<U>&& other)
+    : m_success{other.m_success}
+    , m_error{std::move(other.m_error)}
+    , m_value{std::move(other.m_value)} {}
+
+    template<typename U>
+    Result(const Result<U>& other)
+    : m_success{other.m_success}
+    , m_error{other.m_error}
+    , m_value{other.m_value} {}
+
+    template<typename U>
+    Result& operator=(Result<U>&& other) {
+        if(this == reinterpret_cast<decltype(this)>(&other)) return *this;
+        m_success = other.m_success;
+        m_error   = std::move(other.m_error);
+        m_value   = std::move(other.m_value);
+        return *this;
+    }
+
+    template<typename U>
+    Result& operator=(const Result<U>& other) {
+        if(this == reinterpret_cast<decltype(this)>(&other)) return *this;
+        m_success = other.m_success;
+        m_error   = other.m_error;
+        m_value   = other.m_value;
+        return *this;
+    }
 
     /**
      * @brief Whether the request succeeded.

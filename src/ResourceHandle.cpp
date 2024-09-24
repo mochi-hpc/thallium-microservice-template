@@ -7,7 +7,6 @@
 #include "alpha/Result.hpp"
 #include "alpha/Exception.hpp"
 
-#include "AsyncRequestImpl.hpp"
 #include "ClientImpl.hpp"
 #include "ResourceHandleImpl.hpp"
 
@@ -39,29 +38,14 @@ Client ResourceHandle::client() const {
     return Client(self->m_client);
 }
 
-void ResourceHandle::computeSum(
-        int32_t x, int32_t y,
-        int32_t* sum,
-        AsyncRequest* req) const
+Future<int32_t> ResourceHandle::computeSum(
+        int32_t x, int32_t y) const
 {
     if(not self) throw Exception("Invalid alpha::ResourceHandle object");
     auto& rpc = self->m_client->m_compute_sum;
     auto& ph  = self->m_ph;
-    if(req == nullptr) { // synchronous call
-        Result<int32_t> response = rpc.on(ph)(x, y);
-        response.andThen([sum](int32_t s) { if(sum) *sum = s; });
-    } else { // asynchronous call
-        auto async_response = rpc.on(ph).async(x, y);
-        auto async_request_impl =
-            std::make_shared<AsyncRequestImpl>(std::move(async_response));
-        async_request_impl->m_wait_callback =
-            [sum](AsyncRequestImpl& async_request_impl) {
-                Result<int32_t> response =
-                    async_request_impl.m_async_response.wait();
-                response.andThen([sum](int32_t s) { if(sum) *sum = s; });
-            };
-        *req = AsyncRequest(std::move(async_request_impl));
-    }
+    auto async_response = rpc.on(ph).async(x, y);
+    return Future<int32_t>{std::move(async_response)};
 }
 
 }

@@ -5,8 +5,7 @@ set (server-src-files
 
 set (client-src-files
      Client.cpp
-     ResourceHandle.cpp
-     AsyncRequest.cpp)
+     ResourceHandle.cpp)
 
 set (dummy-src-files
      dummy/DummyBackend.cpp)
