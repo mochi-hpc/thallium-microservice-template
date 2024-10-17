@@ -19,7 +19,7 @@ Provider::Provider(const tl::engine& engine, uint16_t provider_id, const std::st
 }
 
 Provider::Provider(Provider&& other) {
-    other.self->get_engine().pop_finalize_callback(this);
+    other.self->get_engine().pop_finalize_callback(&other);
     self = std::move(other.self);
     self->get_engine().push_finalize_callback(this, [p=this]() { p->self.reset(); });
 }
