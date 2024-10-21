@@ -6,14 +6,14 @@
 #ifndef __DUMMY_BACKEND_HPP
 #define __DUMMY_BACKEND_HPP
 
-#include <alpha/Backend.hpp>
+#include <alpha/ResourceInterface.hpp>
 
 using json = nlohmann::json;
 
 /**
  * Dummy implementation of an alpha Backend.
  */
-class DummyResource : public alpha::Backend {
+class DummyResource : public alpha::ResourceInterface {
 
     thallium::engine m_engine;
     json             m_config;
@@ -56,11 +56,6 @@ class DummyResource : public alpha::Backend {
     std::string getConfig() const override;
 
     /**
-     * @brief Prints Hello World.
-     */
-    void sayHello() override;
-
-    /**
      * @brief Compute the sum of two integers.
      *
      * @param x first integer
@@ -87,7 +82,7 @@ class DummyResource : public alpha::Backend {
      *
      * @return a unique_ptr to a resource
      */
-    static std::unique_ptr<alpha::Backend> create(const thallium::engine& engine, const json& config);
+    static std::unique_ptr<alpha::ResourceInterface> create(const thallium::engine& engine, const json& config);
 
     /**
      * @brief Static factory function used by the ResourceFactory to
@@ -98,7 +93,7 @@ class DummyResource : public alpha::Backend {
      *
      * @return a unique_ptr to a resource
      */
-    static std::unique_ptr<alpha::Backend> open(const thallium::engine& engine, const json& config);
+    static std::unique_ptr<alpha::ResourceInterface> open(const thallium::engine& engine, const json& config);
 };
 
 #endif

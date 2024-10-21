@@ -14,10 +14,6 @@ DummyResource::DummyResource(thallium::engine engine, const json& config)
 
 }
 
-void DummyResource::sayHello() {
-    std::cout << "Hello World" << std::endl;
-}
-
 std::string DummyResource::getConfig() const {
     return m_config.dump();
 }
@@ -35,12 +31,12 @@ alpha::Result<bool> DummyResource::destroy() {
     return result;
 }
 
-std::unique_ptr<alpha::Backend> DummyResource::create(const thallium::engine& engine, const json& config) {
+std::unique_ptr<alpha::ResourceInterface> DummyResource::create(const thallium::engine& engine, const json& config) {
     (void)engine;
-    return std::unique_ptr<alpha::Backend>(new DummyResource(engine, config));
+    return std::unique_ptr<alpha::ResourceInterface>(new DummyResource(engine, config));
 }
 
-std::unique_ptr<alpha::Backend> DummyResource::open(const thallium::engine& engine, const json& config) {
+std::unique_ptr<alpha::ResourceInterface> DummyResource::open(const thallium::engine& engine, const json& config) {
     (void)engine;
-    return std::unique_ptr<alpha::Backend>(new DummyResource(engine, config));
+    return std::unique_ptr<alpha::ResourceInterface>(new DummyResource(engine, config));
 }

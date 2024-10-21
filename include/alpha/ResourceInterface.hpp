@@ -3,8 +3,8 @@
  *
  * See COPYRIGHT in top-level directory.
  */
-#ifndef __ALPHA_BACKEND_HPP
-#define __ALPHA_BACKEND_HPP
+#ifndef __ALPHA_RESOURCE_INTERFACE_HPP
+#define __ALPHA_RESOURCE_INTERFACE_HPP
 
 #include <alpha/Result.hpp>
 #include <unordered_set>
@@ -16,26 +16,26 @@
 /**
  * @brief Helper class to register backend types into the backend factory.
  */
-template<typename BackendType>
+template<typename ResourceInterfaceType>
 class __AlphaBackendRegistration;
 
 namespace alpha {
 
 /**
  * @brief Interface for resource backends. To build a new backend,
- * implement a class MyBackend that inherits from Backend, and put
- * ALPHA_REGISTER_BACKEND(mybackend, MyBackend); in a cpp file
+ * implement a class MyResourceInterface that inherits from ResourceInterface, and put
+ * ALPHA_REGISTER_BACKEND(mybackend, MyResourceInterface); in a cpp file
  * that includes your backend class' header file.
  *
  * Your backend class should also have two static functions to
  * respectively create and open a resource:
  *
- * std::unique_ptr<Backend> create(const json& config)
- * std::unique_ptr<Backend> attach(const json& config)
+ * std::unique_ptr<ResourceInterface> create(const json& config)
+ * std::unique_ptr<ResourceInterface> attach(const json& config)
  */
-class Backend {
+class ResourceInterface {
 
-    template<typename BackendType>
+    template<typename ResourceInterfaceType>
     friend class ::__AlphaBackendRegistration;
 
     std::string m_name;
@@ -45,32 +45,32 @@ class Backend {
     /**
      * @brief Constructor.
      */
-    Backend() = default;
+    ResourceInterface() = default;
 
     /**
      * @brief Move-constructor.
      */
-    Backend(Backend&&) = default;
+    ResourceInterface(ResourceInterface&&) = default;
 
     /**
      * @brief Copy-constructor.
      */
-    Backend(const Backend&) = default;
+    ResourceInterface(const ResourceInterface&) = default;
 
     /**
      * @brief Move-assignment operator.
      */
-    Backend& operator=(Backend&&) = default;
+    ResourceInterface& operator=(ResourceInterface&&) = default;
 
     /**
      * @brief Copy-assignment operator.
      */
-    Backend& operator=(const Backend&) = default;
+    ResourceInterface& operator=(const ResourceInterface&) = default;
 
     /**
      * @brief Destructor.
      */
-    virtual ~Backend() = default;
+    virtual ~ResourceInterface() = default;
 
     /**
      * @brief Return the name of backend.
@@ -83,11 +83,6 @@ class Backend {
      * @brief Returns a JSON-formatted configuration string.
      */
     virtual std::string getConfig() const = 0;
-
-    /**
-     * @brief Prints Hello World.
-     */
-    virtual void sayHello() = 0;
 
     /**
      * @brief Compute the sum of two integers.
@@ -115,7 +110,7 @@ class Backend {
  */
 class ResourceFactory {
 
-    template<typename BackendType>
+    template<typename ResourceInterfaceType>
     friend class ::__AlphaBackendRegistration;
 
     using json = nlohmann::json;
@@ -133,9 +128,10 @@ class ResourceFactory {
      *
      * @return a unique_ptr to the created Resource.
      */
-    static std::unique_ptr<Backend> createResource(const std::string& backend_name,
-                                                   const thallium::engine& engine,
-                                                   const json& config);
+    static std::unique_ptr<ResourceInterface> createResource(
+            const std::string& backend_name,
+            const thallium::engine& engine,
+            const json& config);
 
     /**
      * @brief Opens an existing resource and returns a unique_ptr to the
@@ -145,19 +141,20 @@ class ResourceFactory {
      * @param engine Thallium engine.
      * @param config Configuration object to pass to the backend's open function.
      *
-     * @return a unique_ptr to the created Backend.
+     * @return a unique_ptr to the created ResourceInterface.
      */
-    static std::unique_ptr<Backend> openResource(const std::string& backend_name,
-                                                const thallium::engine& engine,
-                                                const json& config);
+    static std::unique_ptr<ResourceInterface> openResource(
+            const std::string& backend_name,
+            const thallium::engine& engine,
+            const json& config);
 
     private:
 
     static std::unordered_map<std::string,
-                std::function<std::unique_ptr<Backend>(const thallium::engine&, const json&)>> create_fn;
+                std::function<std::unique_ptr<ResourceInterface>(const thallium::engine&, const json&)>> create_fn;
 
     static std::unordered_map<std::string,
-                std::function<std::unique_ptr<Backend>(const thallium::engine&, const json&)>> open_fn;
+                std::function<std::unique_ptr<ResourceInterface>(const thallium::engine&, const json&)>> open_fn;
 };
 
 } // namespace alpha
@@ -166,7 +163,7 @@ class ResourceFactory {
 #define ALPHA_REGISTER_BACKEND(__backend_name, __backend_type) \
     static __AlphaBackendRegistration<__backend_type> __alpha ## __backend_name ## _backend( #__backend_name )
 
-template<typename BackendType>
+template<typename ResourceInterfaceType>
 class __AlphaBackendRegistration {
 
     using json = nlohmann::json;
@@ -176,12 +173,12 @@ class __AlphaBackendRegistration {
     __AlphaBackendRegistration(const std::string& backend_name)
     {
         alpha::ResourceFactory::create_fn[backend_name] = [backend_name](const thallium::engine& engine, const json& config) {
-            auto p = BackendType::create(engine, config);
+            auto p = ResourceInterfaceType::create(engine, config);
             p->m_name = backend_name;
             return p;
         };
         alpha::ResourceFactory::open_fn[backend_name] = [backend_name](const thallium::engine& engine, const json& config) {
-            auto p = BackendType::open(engine, config);
+            auto p = ResourceInterfaceType::open(engine, config);
             p->m_name = backend_name;
             return p;
         };

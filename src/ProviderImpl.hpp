@@ -6,7 +6,7 @@
 #ifndef __ALPHA_PROVIDER_IMPL_H
 #define __ALPHA_PROVIDER_IMPL_H
 
-#include "alpha/Backend.hpp"
+#include "alpha/ResourceInterface.hpp"
 
 #include <thallium.hpp>
 #include <thallium/serialization/stl/string.hpp>
@@ -51,8 +51,8 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
     // Client RPC
     tl::auto_remote_procedure m_compute_sum;
     // FIXME: other RPCs go here ...
-    // Backends
-    std::shared_ptr<Backend> m_backend;
+    // ResourceInterfaces
+    std::shared_ptr<ResourceInterface> m_backend;
 
     ProviderImpl(const tl::engine& engine, uint16_t provider_id, const std::string& config, const tl::pool& pool)
     : tl::provider<ProviderImpl>(engine, provider_id, "alpha")
