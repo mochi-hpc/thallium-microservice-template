@@ -19,6 +19,7 @@ spack:
     prefix_inspections:
       lib: [LD_LIBRARY_PATH]
       lib64: [LD_LIBRARY_PATH]
+# # Uncomment the lines below to enable the build cache
 #  mirrors:
 #    mochi-buildcache:
 #      url: oci://ghcr.io/mochi-hpc/mochi-spack-buildcache
@@ -34,4 +35,5 @@ spack:
     mochi-bedrock-module-api:
       require: "@0.2.1:"
     python:
+      # we force 3.12 to avoid a conflict with the version of Python installed on the github runners
       require: "@3.12.12"
