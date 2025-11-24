@@ -24,7 +24,7 @@ if (ENABLE_PYTHON)
         if (${ENABLE_COVERAGE})
             add_test (NAME ${PYTHON_TEST_NAME} COMMAND coverage run -a -m unittest ${PYTHON_TEST_NAME})
         else ()
-            add_test (NAME ${PYTHON_TEST_NAME} COMMAND python -m unittest ${PYTHON_TEST_NAME})
+            add_test (NAME ${PYTHON_TEST_NAME} COMMAND ${Python3_EXECUTABLE} -m unittest ${PYTHON_TEST_NAME})
         endif ()
         set_property (TEST ${PYTHON_TEST_NAME} PROPERTY ENVIRONMENT
                       PYTHONPATH=${CMAKE_SOURCE_DIR}/python/:${CMAKE_BINARY_DIR}/python:$ENV{PYTHONPATH})
