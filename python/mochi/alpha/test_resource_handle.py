@@ -31,3 +31,21 @@ class TestResourceHandle(unittest.TestCase):
                                                   provider_id=42)
         future = handle.compute_sum(34, 56)
         self.assertEqual(future.wait(), 90)
+
+    def test_compute_sum_with_timeout(self):
+        handle = self.client.make_resource_handle(address=str(self.engine.address),
+                                                  provider_id=42)
+        future = handle.compute_sum_with_timeout(34, 56, timeout=500)
+        self.assertEqual(future.wait(), 90)
+
+    def test_compute_sum_arrays(self):
+        handle = self.client.make_resource_handle(address=str(self.engine.address),
+                                                  provider_id=42)
+        import array
+        x = array.array('i', [1, 2, 3])
+        y = array.array('i', [4, 5, 6])
+        r = array.array('i', [0, 0, 0])
+        future = handle.compute_sums(x, y, r)
+        self.assertEqual(future.wait(), True)
+        for i in range(0, 3):
+            self.assertEqual(r[i], x[i] + y[i])

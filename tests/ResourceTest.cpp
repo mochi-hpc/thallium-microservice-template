@@ -33,5 +33,29 @@ TEST_CASE("Resource test", "[resource]") {
             REQUIRE_NOTHROW([&]() { result = rh.computeSum(42, 51).wait(); }());
             REQUIRE(result == 93);
         }
+
+        SECTION("Send Sum RPC with timeout") {
+            int32_t result;
+            REQUIRE_NOTHROW([&]() {
+                result = rh.computeSumWithTimeout(42, 51, std::chrono::milliseconds{500}).wait(); }()
+            );
+            REQUIRE(result == 93);
+        }
+
+        SECTION("Send Sum RPC for spans") {
+            std::vector<int32_t> x{1,2,3};
+            std::vector<int32_t> y{4,5,6};
+            std::vector<int32_t> r(3);
+
+            bool result;
+            REQUIRE_NOTHROW([&]() {
+                result = rh.computeSums(x, y, r).wait(); }()
+            );
+
+            REQUIRE(result);
+            REQUIRE(r[0] == 5);
+            REQUIRE(r[1] == 7);
+            REQUIRE(r[2] == 9);
+        }
     }
 }

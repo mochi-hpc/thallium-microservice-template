@@ -8,11 +8,13 @@
 
 #include <thallium.hpp>
 #include <memory>
+#include <chrono>
+#include <span>
 #include <unordered_set>
-#include <nlohmann/json.hpp>
 #include <alpha/Client.hpp>
 #include <alpha/Exception.hpp>
 #include <alpha/Future.hpp>
+#include <alpha/BulkLocation.hpp>
 
 namespace alpha {
 
@@ -82,6 +84,49 @@ class ResourceHandle {
      * @return a Future<int32_t> that can be awaited to get the result.
      */
     Future<int32_t> computeSum(int32_t x, int32_t y) const;
+
+    /**
+     * @brief Same as computeSum but allows specifying a timeout after which
+     * the operation is considered to have failed.
+     *
+     * @param x first integer
+     * @param y second integer
+     * @param timeout Timeout (in milliseconds)
+     *
+     * @return a Future<int32_t> that can be awaited to get the result.
+     */
+    Future<int32_t> computeSumWithTimeout(int32_t x, int32_t y, std::chrono::milliseconds timeout) const;
+
+    /**
+     * @brief Computes the sums of two numbers in the x and y spans.
+     * When the future completes, the results will be in the result span.
+     * The three spans must have the same size.
+     *
+     * @param x X values
+     * @param y Y values
+     * @param result Result values
+     *
+     * @return a Future<void> that can be awaited.
+     */
+    Future<bool> computeSums(std::span<const int32_t> x, std::span<const int32_t> y,
+                             std::span<int32_t> result) const;
+
+    /**
+     * @brief Computes the sums of two numbers in the memory represented by
+     * the BulkLocation instances. With this low-level function, one can
+     * call computeSums, passing references to memories that belong to potentially
+     * three different processes.
+     *
+     * @param x Bulk location of the X values
+     * @param y Bulk location of the Y values
+     * @param result Bulk location of the result values
+     *
+     * @return a Future<void> that can be awaited.
+     */
+    Future<bool> computeSumsFromBulk(
+        const BulkLocation& x,
+        const BulkLocation& y,
+        const BulkLocation& result) const;
 
     private:
 

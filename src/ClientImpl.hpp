@@ -21,10 +21,12 @@ class ClientImpl {
 
     tl::engine           m_engine;
     tl::remote_procedure m_compute_sum;
+    tl::remote_procedure m_compute_sum_bulk;
 
     ClientImpl(const tl::engine& engine)
     : m_engine(engine)
     , m_compute_sum(m_engine.define("alpha_compute_sum"))
+    , m_compute_sum_bulk(m_engine.define("alpha_compute_sum_bulk"))
     {}
 
     ClientImpl(margo_instance_id mid)

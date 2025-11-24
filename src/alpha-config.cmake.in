@@ -13,6 +13,7 @@ check_required_components (alpha)
 include (CMakeFindDependencyMacro)
 find_dependency (thallium)
 find_dependency (PkgConfig)
+find_dependency (nlohmann_json)
 
 # FIXME: add more dependencies if needed
 
