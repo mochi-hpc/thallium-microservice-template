@@ -68,15 +68,20 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
             error("Could not parse provider configuration: {}", e.what());
             return;
         }
-        if(!json_config.is_object()) return;
-        if(!json_config.contains("resource")) return;
+        if(!json_config.is_object())
+            throw Exception{"Alpha provider configuration should be an object"};
+        if(!json_config.contains("resource"))
+            throw Exception{"\"resource\" field not found in Alpha provider configuration"};
         auto& resource = json_config["resource"];
-        if(!resource.is_object()) return;
+        if(!resource.is_object())
+            throw Exception{"\"resource\" field in Alpha provider configuration should be an object"};
         if(resource.contains("type") && resource["type"].is_string()) {
             auto& resource_type = resource["type"].get_ref<const std::string&>();
             auto resource_config = resource.contains("config") ? resource["config"] : json::object();
             auto result = createResource(resource_type, resource_config);
             result.check();
+        } else {
+            throw Exception{"\"type\" field not found in resource configuration for Alpha provider"};
         }
     }
 

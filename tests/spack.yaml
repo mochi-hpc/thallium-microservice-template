@@ -8,6 +8,9 @@ spack:
   - fmt
   - tclap
   - mochi-bedrock-module-api
+  - python
+  - py-pybind11
+  - py-mochi-margo
   concretizer:
     unify: true
     reuse: true

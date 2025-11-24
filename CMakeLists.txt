@@ -11,6 +11,7 @@ add_library (coverage_config INTERFACE)
 option (ENABLE_TESTS    "Build tests" OFF)
 option (ENABLE_EXAMPLES "Build examples" OFF)
 option (ENABLE_BEDROCK  "Build bedrock module" OFF)
+option (ENABLE_PYTHON    "Build the Python module" OFF)
 option (ENABLE_COVERAGE "Build with coverage" OFF)
 option (ENABLE_ASAN     "Build with address sanitizer" OFF)
 
@@ -65,6 +66,12 @@ find_package (fmt REQUIRED)
 # search of bedrock if needed
 if (${ENABLE_BEDROCK})
     find_package (bedrock-module-api REQUIRED)
+endif ()
+# search for Python if needed
+if (ENABLE_PYTHON)
+    find_package (Python3 COMPONENTS Interpreter Development REQUIRED)
+    find_package (pybind11 REQUIRED)
+    add_subdirectory (python)
 endif ()
 
 # library version set here (e.g. for shared libs).

@@ -91,12 +91,12 @@ if __name__ == '__main__':
         'Resource' : resource_name.capitalize()
     }
     files_to_edit = list_files_to_edit('.',
-        extensions=['.cpp', '.h', '.hpp', '.txt', '.in', '.json'],
+        extensions=['.cpp', '.h', '.hpp', '.txt', '.in', '.json', '.py'],
         exclude_directories=['.git', '.github', 'build', '.spack-env'])
     for f in files_to_edit:
         replace_in_file(f, mapping)
     rename_files_and_directories('.',
-        extensions=['.cpp', '.h', '.hpp', '.txt', '.in'],
+        extensions=['.cpp', '.h', '.hpp', '.txt', '.in', '.json', '.py'],
         mapping=mapping,
         exclude_directories=['.git', '.github', 'build', '.spack-env'])
     os.system('git rm .github/initial-setup.py')
