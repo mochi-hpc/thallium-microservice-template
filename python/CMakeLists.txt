@@ -10,7 +10,7 @@ pybind11_strip (_pyalpha_server)
 
 set (PY_ALPHA_TARGETS _pyalpha_client _pyalpha_server)
 
-set (PY_VERSION ${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR})
+set (PY_VERSION ${Python_VERSION_MAJOR}.${Python_VERSION_MINOR})
 
 install (TARGETS ${PY_ALPHA_TARGETS}
          EXPORT alpha-targets
