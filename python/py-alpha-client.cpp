@@ -147,5 +147,5 @@ PYBIND11_MODULE(_pyalpha_client, m) {
             )", "x"_a, "y"_a, "r"_a);
 
     exportFutureType<int32_t>("Int32", m);
-    exportFutureType<bool>("Boolean", m);
+    exportFutureType<void>("Void", m);
 }

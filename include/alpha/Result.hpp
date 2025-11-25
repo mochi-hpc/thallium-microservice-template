@@ -6,11 +6,20 @@
 #ifndef __ALPHA_RESULT_HPP
 #define __ALPHA_RESULT_HPP
 
-#include <thallium/serialization/stl/string.hpp>
+#include <cereal/types/string.hpp>
+#include <cereal/types/variant.hpp>
 #include <alpha/Exception.hpp>
 #include <string>
 
 namespace alpha {
+
+// TUTORIAL
+// ********
+//
+// The Result class is used as response type to all the RPCs in this project.
+// It acts like a variant with a main type T and an alpha::Exception for
+// error handling. RPCs will generally either pass their return value as T
+// or propagate an exception to be thrown by the client.
 
 /**
  * @brief The Result object is a generic object
@@ -181,133 +190,112 @@ class Result {
 };
 
 template<>
-class Result<std::string> {
+class Result<void> {
+
+    template<typename U>
+    friend class Result;
 
     public:
 
     Result() = default;
-    Result(Result&&) = default;
-    Result(const Result&) = default;
-    Result& operator=(Result&&) = default;
-    Result& operator=(const Result&) = default;
 
+    template<typename U>
+    Result(Result<U>&& other)
+    : m_success{other.m_success}
+    , m_error{std::move(other.m_error)} {}
+
+    template<typename U>
+    Result(const Result<U>& other)
+    : m_success{other.m_success}
+    , m_error{other.m_error} {}
+
+    template<typename U>
+    Result& operator=(Result<U>&& other) {
+        if(this == reinterpret_cast<decltype(this)>(&other)) return *this;
+        m_success = other.m_success;
+        m_error   = std::move(other.m_error);
+        return *this;
+    }
+
+    template<typename U>
+    Result& operator=(const Result<U>& other) {
+        if(this == reinterpret_cast<decltype(this)>(&other)) return *this;
+        m_success = other.m_success;
+        m_error   = other.m_error;
+        return *this;
+    }
+
+    /**
+     * @brief Whether the request succeeded.
+     */
     bool& success() {
         return m_success;
     }
 
+    /**
+     * @brief Whether the request succeeded.
+     */
     const bool& success() const {
         return m_success;
     }
 
+    /**
+     * @brief Error string if the request failed.
+     */
     std::string& error() {
-        return m_content;
+        return m_error;
     }
 
+    /**
+     * @brief Error string if the request failed.
+     */
     const std::string& error() const {
-        return m_content;
+        return m_error;
     }
 
-    std::string& value() {
-        return m_content;
-    }
-
-    const std::string& value() const {
-        return m_content;
-    }
-
-    const std::string& valueOrThrow() const & {
-        check();
-        return m_content;
-    }
-
-    std::string&& valueOrThrow() && {
-        check();
-        return std::move(m_content);
-    }
-
+    /**
+     * @brief Execute a function on the value
+     * if the value is present, otherwise throws
+     * an Exception.
+     */
     template<typename F>
     decltype(auto) andThen(F&& f) const & {
-        return std::forward<F>(f)(valueOrThrow());
-    }
-
-    template<typename F>
-    decltype(auto) andThen(F&& f) && {
-        return std::forward<F>(f)(valueOrThrow());
-    }
-
-    void check() const {
-        if(!m_success)
-            throw Exception(m_content);
-    }
-
-    template<typename Archive>
-    void serialize(Archive& a) {
-        a & m_success;
-        a & m_content;
-    }
-
-    private:
-
-    bool        m_success = true;
-    std::string m_content = "";
-};
-
-template<>
-class Result<bool> {
-
-    public:
-
-    Result() = default;
-    Result(Result&&) = default;
-    Result(const Result&) = default;
-    Result& operator=(Result&&) = default;
-    Result& operator=(const Result&) = default;
-
-    bool& success() {
-        return m_success;
-    }
-
-    const bool& success() const {
-        return m_success;
-    }
-
-    std::string& error() {
-        return m_error;
-    }
-
-    const std::string& error() const {
-        return m_error;
-    }
-
-    bool& value() {
-        return m_success;
-    }
-
-    const bool& value() const {
-        return m_success;
-    }
-
-    bool valueOrThrow() const {
-        check();
-        return true;
-    }
-
-    template<typename F>
-    decltype(auto) andThen(F&& f) const {
         check();
         return std::forward<F>(f)();
     }
 
+    /**
+     * @brief Execute a function on the value
+     * if the value is present, otherwise throws
+     * an Exception.
+     */
+    template<typename F>
+    decltype(auto) andThen(F&& f) && {
+        check();
+        return std::forward<F>(f)();
+    }
+
+    /**
+     * @brief Throw an Exception if the Result
+     * contains an error.
+     */
     void check() const {
         if(!m_success)
             throw Exception(m_error);
     }
 
+    /**
+     * @brief Serialization function for Thallium.
+     *
+     * @tparam Archive Archive type.
+     * @param a Archive instance.
+     */
     template<typename Archive>
     void serialize(Archive& a) {
         a & m_success;
-        if(!m_success)
+        if(!m_success) {
             a & m_error;
+        }
     }
 
     private:

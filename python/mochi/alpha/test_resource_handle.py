@@ -46,6 +46,6 @@ class TestResourceHandle(unittest.TestCase):
         y = array.array('i', [4, 5, 6])
         r = array.array('i', [0, 0, 0])
         future = handle.compute_sums(x, y, r)
-        self.assertEqual(future.wait(), True)
+        self.assertIsNone(future.wait())
         for i in range(0, 3):
             self.assertEqual(r[i], x[i] + y[i])

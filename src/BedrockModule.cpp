@@ -5,7 +5,6 @@
  */
 #include "alpha/Client.hpp"
 #include "alpha/Provider.hpp"
-#include "alpha/ProviderHandle.hpp"
 
 #include <bedrock/AbstractComponent.hpp>
 

@@ -66,14 +66,6 @@ class DummyResource : public alpha::ResourceInterface {
     alpha::Result<int32_t> computeSum(int32_t x, int32_t y) override;
 
     /**
-     * @brief Destroys the underlying resource.
-     *
-     * @return a Result<bool> instance indicating
-     * whether the database was successfully destroyed.
-     */
-    alpha::Result<bool> destroy() override;
-
-    /**
      * @brief Static factory function used by the ResourceFactory to
      * create a DummyResource.
      *
@@ -82,18 +74,7 @@ class DummyResource : public alpha::ResourceInterface {
      *
      * @return a unique_ptr to a resource
      */
-    static std::unique_ptr<alpha::ResourceInterface> create(const thallium::engine& engine, const json& config);
-
-    /**
-     * @brief Static factory function used by the ResourceFactory to
-     * open a DummyResource.
-     *
-     * @param engine Thallium engine
-     * @param config JSON configuration for the resource
-     *
-     * @return a unique_ptr to a resource
-     */
-    static std::unique_ptr<alpha::ResourceInterface> open(const thallium::engine& engine, const json& config);
+    static std::unique_ptr<alpha::ResourceInterface> Create(const thallium::engine& engine, const json& config);
 };
 
 #endif

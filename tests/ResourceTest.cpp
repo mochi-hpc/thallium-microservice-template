@@ -47,12 +47,8 @@ TEST_CASE("Resource test", "[resource]") {
             std::vector<int32_t> y{4,5,6};
             std::vector<int32_t> r(3);
 
-            bool result;
-            REQUIRE_NOTHROW([&]() {
-                result = rh.computeSums(x, y, r).wait(); }()
-            );
+            REQUIRE_NOTHROW(rh.computeSums(x, y, r).wait());
 
-            REQUIRE(result);
             REQUIRE(r[0] == 5);
             REQUIRE(r[1] == 7);
             REQUIRE(r[2] == 9);

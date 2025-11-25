@@ -18,6 +18,15 @@
 
 namespace alpha {
 
+// TUTORIAL
+// ********
+//
+// The ResourceHandle is the client-side object that represents a remote Resource.
+// Instances of this class can be created by the Client object. This ResourceHandle
+// class provides a few example functions that call RPCs on the target Resource:
+// computeSum, computeSumWithTimeout, computeSums, and computeSumsFromBulk.
+// See src/ResourceHandle.cpp for their implementation.
+
 class Client;
 class ResourceHandleImpl;
 
@@ -108,7 +117,7 @@ class ResourceHandle {
      *
      * @return a Future<void> that can be awaited.
      */
-    Future<bool> computeSums(std::span<const int32_t> x, std::span<const int32_t> y,
+    Future<void> computeSums(std::span<const int32_t> x, std::span<const int32_t> y,
                              std::span<int32_t> result) const;
 
     /**
@@ -123,7 +132,7 @@ class ResourceHandle {
      *
      * @return a Future<void> that can be awaited.
      */
-    Future<bool> computeSumsFromBulk(
+    Future<void> computeSumsFromBulk(
         const BulkLocation& x,
         const BulkLocation& y,
         const BulkLocation& result) const;

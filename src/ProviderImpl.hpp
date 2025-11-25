@@ -64,6 +64,13 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
     , m_compute_sum(define("alpha_compute_sum",  &ProviderImpl::computeSumRPC, pool))
     , m_compute_sum_bulk(define("alpha_compute_sum_bulk",  &ProviderImpl::computeSumBulkRPC, pool))
     {
+        // TUTORIAL
+        // ********
+        //
+        // Typically, the configuration is expected to have a "resource" field, with two
+        // subfields: "type" (the type of resource, which should match a type registered with
+        // the resource factory) and "config", which will be propagated to the resource's
+        // Create function.
         trace("Registered provider with id {}", get_provider_id());
         json json_config;
         try {
@@ -91,20 +98,15 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
 
     ~ProviderImpl() {
         trace("Deregistering provider");
-        if(m_backend) {
-            m_backend->destroy();
-        }
     }
 
     std::string getConfig() const {
         auto config = json::object();
-        if(m_backend) {
-            config["resource"] = json::object();
-            auto resource_config = json::object();
-            resource_config["type"] = m_backend->name();
-            resource_config["config"] = json::parse(m_backend->getConfig());
-            config["resource"] = std::move(resource_config);
-        }
+        config["resource"] = json::object();
+        auto resource_config = json::object();
+        resource_config["type"] = m_backend->name();
+        resource_config["config"] = json::parse(m_backend->getConfig());
+        config["resource"] = std::move(resource_config);
         return config.dump();
     }
 
@@ -136,6 +138,12 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
 
     void computeSumRPC(const tl::request& req,
                        int32_t x, int32_t y) {
+        // TUTORIAL
+        // ********
+        //
+        // This is a simple RPC function. The first argument must be a tl::request
+        // that we can use to respond to the sender. tl::auto_respond uses the RAII
+        // principle to call req.respond(result) in its destructor.
         trace("Received computeSum request");
         Result<int32_t> result;
         tl::auto_respond<decltype(result)> response{req, result};
@@ -146,6 +154,18 @@ class ProviderImpl : public tl::provider<ProviderImpl> {
     void computeSumBulkRPC(const tl::request& req,
                            BulkLocation remote_x, BulkLocation remote_y,
                            BulkLocation remote_result) {
+        // TUTORIAL
+        // ********
+        //
+        // This function relies on RDMA to transfer the x, y, and result values.
+        // m_engine.lookup() is used to lookup the addresses of these remote memory locations.
+        // Local copies are setup (local_x,y,result) and exposed using m_engine.expose.
+        // The << operator is then used to perform the appropriate transfers before and
+        // after m_backend->computeSum is called.
+        //
+        // Note how the remote bulk handles must be bound to their endpoints using
+        // .on(endpoint), and how the parenthesis operator is overloaded to select the
+        // correct range (offset, size).
         trace("Received computeSumBulk request");
         Result<bool> result;
         tl::auto_respond<decltype(result)> response{req, result};

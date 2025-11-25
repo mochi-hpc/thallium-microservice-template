@@ -15,6 +15,21 @@ namespace alpha {
 class ClientImpl;
 class ResourceHandle;
 
+// TUTORIAL
+// ********
+//
+// The client library is composed of the Client and ResourceHandle classes.
+// It uses the Pimpl idiom to better hide implementation details, so the
+// inner state of these classes are held in ClientImpl and ResourceHandleImpl
+// respectively, which are not exposed to users.
+//
+// The Client is an object that registers RPCs with the Margo instance or
+// Thallium engine. It can then be used create ResourceHandle instances
+// using makeResourceHandle. Since ResourceHandle instances keep a shared
+// pointer to the ClientImpl that created them, it is safe for the Client
+// object that created them to get out of scope. It is also safe for multiple
+// Client objects to be created by the program.
+
 /**
  * @brief The Client object is the main object used to establish
  * a connection with a Alpha service.

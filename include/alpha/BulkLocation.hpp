@@ -10,10 +10,22 @@
 
 namespace alpha {
 
+// TUTORIAL
+// ********
+//
+// It is often useful to encapsulate information about some process' memory region
+// when sending to a provider. The BulkLocation structure encapsulates a bulk handle
+// with the owner's address, as well as where in the bulk handle (offset, size) the
+// server should pull from or push into.
+//
+// The serialize function allows BulkLocation instances to be passed as arguments
+// to RPCs.
+
 /**
  * @brief Structure encapsulating a bulk handle and the
  * address of the process where the memory is located,
- * as well as the offset and size in the bulk.
+ * as well as the offset and size in the bulk that are
+ * relevant for the operation.
  */
 struct BulkLocation {
 

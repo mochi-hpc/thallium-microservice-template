@@ -13,6 +13,19 @@ namespace alpha {
 
 namespace tl = thallium;
 
+// TUTORIAL
+// ********
+//
+// A Provider is an object that (1) holds a Resource instance and
+// (2) receives RPCs to be executed against this instance. It is initialized
+// with a Thallium engine, a provider ID, a configuration string, which
+// should be JSON-formatted, and an Argobots pool in which its RPCs will land.
+// In more complex components, it may require other dependencies such as handles
+// to other components, other Argobots pools, etc.
+//
+// This class uses the Pimpl idiom so the Provider class is public but its
+// internal state, in ProviderImpl, is hidden from the user.
+
 class ProviderImpl;
 
 /**
